@@ -243,7 +243,7 @@ namespace BoincRpc
 
     public class DailyStatistics
     {
-        public double Day { get; }
+        public DateTime Day { get; }
         public double UserTotalCredit { get; }
         public double UserAverageCredit { get; }
         public double HostTotalCredit { get; }
@@ -251,7 +251,7 @@ namespace BoincRpc
 
         internal DailyStatistics(XElement element)
         {
-            Day = element.ElementDouble("day");
+            Day = element.ElementDateTimeOffset("day").DateTime;
             UserTotalCredit = element.ElementDouble("user_total_credit");
             UserAverageCredit = element.ElementDouble("user_expavg_credit");
             HostTotalCredit = element.ElementDouble("host_total_credit");
@@ -804,7 +804,7 @@ namespace BoincRpc
 
         internal DailyTransferStatistics(XElement element)
         {
-            Day = new DateTime(1970, 1, 1) + TimeSpan.FromDays(element.ElementInt("when")); 
+            Day = new DateTime(1970, 1, 1).AddDays(element.ElementInt("when"));
             BytesUploaded = element.ElementDouble("up");
             BytesDownloaded = element.ElementDouble("down");
         }
@@ -974,7 +974,10 @@ namespace BoincRpc
             HaveCuda = element.ContainsElement("have_cuda");
             HaveAti = element.ContainsElement("have_ati");
             Platforms = element.Elements("platform").Select(e => (string)e).ToArray();
-            GlobalPreferences = new GlobalPreferences(element.Element("global_preferences"));
+
+            XElement globalPreferences = element.Element("global_preferences");
+            if (globalPreferences != null)
+                GlobalPreferences = new GlobalPreferences(globalPreferences);
 
             foreach (XElement el in element.Elements())
             {
