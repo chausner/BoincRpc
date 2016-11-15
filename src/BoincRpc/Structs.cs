@@ -88,7 +88,7 @@ namespace BoincRpc
         public ErrorCode ErrorCode { get; }
         public string Name { get; }
         public string MasterUrl { get; }
-        public int LocalRevision { get; }
+        public string LocalRevision { get; }
         public int MinimumPasswordLength { get; }
         public bool AccountManager { get; }
         public bool UsesUsername { get; }
@@ -106,7 +106,7 @@ namespace BoincRpc
             ErrorCode = (ErrorCode)element.ElementInt("error_num");
             Name = element.ElementString("name");
             MasterUrl = element.ElementString("master_url");
-            LocalRevision = element.ElementInt("local_revision");
+            LocalRevision = element.ElementString("local_revision");
             MinimumPasswordLength = element.ElementInt("min_passwd_length");
             AccountManager = element.ElementBoolean("account_manager");
             UsesUsername = element.ElementBoolean("uses_username");
