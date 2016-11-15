@@ -258,6 +258,11 @@ namespace BoincRpc
 
             return new ProjectAttachReply(await PollRpcAsync("<project_attach_poll/>", cancellationToken));
         }
+        
+        public Task SetRunModeAsync(Mode mode)
+        {
+            return SetRunModeAsync(mode, TimeSpan.Zero);
+        }
 
         public async Task SetRunModeAsync(Mode mode, TimeSpan duration)
         {
@@ -270,6 +275,11 @@ namespace BoincRpc
 
             CheckResponse(await PerformRpcAsync(request));
         }
+        
+        public Task SetGpuModeAsync(Mode mode)
+        {
+            return SetGpuModeAsync(mode, TimeSpan.Zero);
+        }
 
         public async Task SetGpuModeAsync(Mode mode, TimeSpan duration)
         {
@@ -281,6 +291,11 @@ namespace BoincRpc
                 new XElement("duration", Utils.ConvertTimeSpanToSeconds(duration)));
 
             CheckResponse(await PerformRpcAsync(request));
+        }
+        
+        public Task SetNetworkModeAsync(Mode mode)
+        {
+            return SetNetworkModeAsync(mode, TimeSpan.Zero);
         }
 
         public async Task SetNetworkModeAsync(Mode mode, TimeSpan duration)
