@@ -52,7 +52,15 @@ namespace BoincRpc
 
         public static bool ElementBoolean(this XElement element, XName name, bool defaultValue = default(bool))
         {
-            return ((bool?)element.Element(name)).GetValueOrDefault(defaultValue);
+            XElement child = element.Element(name);
+
+            if (child == null)
+                return defaultValue;
+            else
+                if (child.IsEmpty)
+                    return true;
+                else
+                    return (bool)child;
         }
 
         public static int ElementInt(this XElement element, XName name, int defaultValue = default(int))
