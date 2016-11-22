@@ -807,7 +807,7 @@ namespace BoincRpc
 
         protected Task<XElement> PerformRpcAsync(XElement request)
         {
-            return PerformRpcAsync(request.ToString(SaveOptions.DisableFormatting)).ConfigureAwait(false);
+            return PerformRpcAsync(request.ToString(SaveOptions.DisableFormatting));
         }
 
         protected async Task<XElement> PerformRpcAsync(string request)
@@ -845,23 +845,25 @@ namespace BoincRpc
             try
             {
                 NetworkStream networkStream = tcpClient.GetStream();
+                
+                byte[] sendBuffer = Encoding.ASCII.GetBytes(request);
 
-                await networkStream.WriteAsync(Encoding.ASCII.GetBytes(request), 0, request.Length).ConfigureAwait(false);
+                await networkStream.WriteAsync(sendBuffer, 0, sendBuffer.Length).ConfigureAwait(false);
 
-                byte[] buffer = new byte[tcpClient.ReceiveBufferSize];
+                byte[] receiveBuffer = new byte[tcpClient.ReceiveBufferSize];
 
                 int bytesRead;
 
                 do
                 {
-                    bytesRead = await networkStream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+                    bytesRead = await networkStream.ReadAsync(receiveBuffer, 0, receiveBuffer.Length).ConfigureAwait(false);
 
                     if (bytesRead == 0)
                         break;
 
-                    reply.Write(buffer, 0, bytesRead);
+                    reply.Write(receiveBuffer, 0, bytesRead);
                 }
-                while (buffer[bytesRead - 1] != 0x03);
+                while (receiveBuffer[bytesRead - 1] != 0x03);
             }
             finally
             {
