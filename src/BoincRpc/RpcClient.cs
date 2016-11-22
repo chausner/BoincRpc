@@ -792,11 +792,11 @@ namespace BoincRpc
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                await Task.Delay(PollingInterval);
+                await Task.Delay(PollingInterval).ConfigureAwait(false);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                XElement element = await PerformRpcAsync(request);
+                XElement element = await PerformRpcAsync(request).ConfigureAwait(false);
 
                 ErrorCode errorCode = (ErrorCode)element.ElementInt("error_num");
 
@@ -807,14 +807,14 @@ namespace BoincRpc
 
         protected Task<XElement> PerformRpcAsync(XElement request)
         {
-            return PerformRpcAsync(request.ToString(SaveOptions.DisableFormatting));
+            return PerformRpcAsync(request.ToString(SaveOptions.DisableFormatting)).ConfigureAwait(false);
         }
 
         protected async Task<XElement> PerformRpcAsync(string request)
         {
             string requestText = string.Format("<boinc_gui_rpc_request>\n{0}\n</boinc_gui_rpc_request>\n\x03", request);
 
-            string responseText = await PerformRpcRawAsync(requestText);
+            string responseText = await PerformRpcRawAsync(requestText).ConfigureAwait(false);
 
             // workaround for some RPC commands returning invalid XML, see https://github.com/BOINC/boinc/pull/1509
             if (responseText.Contains("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>"))
@@ -838,7 +838,7 @@ namespace BoincRpc
 
         protected async Task<string> PerformRpcRawAsync(string request)
         {
-            await semaphore.WaitAsync();
+            await semaphore.WaitAsync().ConfigureAwait(false);
 
             MemoryStream reply = new MemoryStream();
 
@@ -846,7 +846,7 @@ namespace BoincRpc
             {
                 NetworkStream networkStream = tcpClient.GetStream();
 
-                await networkStream.WriteAsync(Encoding.ASCII.GetBytes(request), 0, request.Length);
+                await networkStream.WriteAsync(Encoding.ASCII.GetBytes(request), 0, request.Length).ConfigureAwait(false);
 
                 byte[] buffer = new byte[tcpClient.ReceiveBufferSize];
 
@@ -854,7 +854,7 @@ namespace BoincRpc
 
                 do
                 {
-                    bytesRead = await networkStream.ReadAsync(buffer, 0, buffer.Length);
+                    bytesRead = await networkStream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
 
                     if (bytesRead == 0)
                         break;
