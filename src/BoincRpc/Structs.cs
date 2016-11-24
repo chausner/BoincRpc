@@ -522,7 +522,11 @@ namespace BoincRpc
         public string StderrOut { get; private set; }
         public bool Suspended { get; private set; }
         public bool ProjectSuspended { get; private set; }
+        public bool ReportImmediately { get; private set; }
         public bool CoprocessorMissing { get; private set; }
+        public bool SchedulerWait { get; private set; }
+        public string SchedulerWaitReason { get; private set; }
+        public bool NetworkWait { get; private set; }
         public bool ActiveTask { get; private set; }
         public TaskState ActiveTaskState { get; private set; }
         public int AppVersionNumber { get; private set; }
@@ -563,7 +567,11 @@ namespace BoincRpc
             StderrOut = element.ElementString("stderr_out");
             Suspended = element.ContainsElement("suspended_via_gui");
             ProjectSuspended = element.ContainsElement("project_suspended_via_gui");
+            ReportImmediately = element.ContainsElement("report_immediately");
             CoprocessorMissing = element.ContainsElement("coproc_missing");
+            SchedulerWait = element.ContainsElement("scheduler_wait");
+            SchedulerWaitReason = element.ElementString("scheduler_wait_reason");
+            NetworkWait = element.ContainsElement("network_wait");
             ActiveTask = element.ContainsElement("active_task");
             EstimatedCpuTimeRemaining = element.ElementTimeSpan("estimated_cpu_time_remaining");
             SupportsGraphics = element.ContainsElement("supports_graphics");
@@ -605,17 +613,17 @@ namespace BoincRpc
         public string ProjectUrl { get; private set; }
         public string ProjectName { get; private set; }
         public double NumberOfBytes { get; private set; }
-        public bool GeneratedLocally { get; private set; }
         public bool Uploaded { get; private set; }
-        public bool UploadWhenPresent { get; private set; }
         public bool Sticky { get; private set; }
         public bool PersistentTransferActive { get; private set; }
         public bool TransferActive { get; private set; }
         public int NumberOfRetries { get; private set; }
         public DateTimeOffset FirstRequestTime { get; private set; }
         public DateTimeOffset NextRequestTime { get; private set; }
-        public int Status { get; private set; }
+        public ErrorCode Status { get; private set; }
         public TimeSpan TimeSoFar { get; private set; }
+        public double LastBytesTransferred { get; private set; }
+        public bool IsUpload { get; private set; }
         public double BytesTransferred { get; private set; }
         public double FileOffset { get; private set; }
         public double TransferSpeed { get; private set; }
@@ -629,13 +637,12 @@ namespace BoincRpc
             ProjectUrl = element.ElementString("project_url");
             ProjectName = element.ElementString("project_name");
             NumberOfBytes = element.ElementDouble("nbytes");
-            GeneratedLocally = element.ContainsElement("generated_locally");
+            IsUpload = element.ContainsElement("generated_locally"); // deprecated, for backwards compatibility
             Uploaded = element.ContainsElement("uploaded");
-            UploadWhenPresent = element.ContainsElement("upload_when_present");
             Sticky = element.ContainsElement("sticky");
             PersistentTransferActive = element.ContainsElement("persistent_file_xfer");
             TransferActive = element.ContainsElement("file_xfer");           
-            Status = element.ElementInt("status");
+            Status = (ErrorCode)element.ElementInt("status");
             Hostname = element.ElementString("hostname");
             ProjectBackoff = element.ElementTimeSpan("project_backoff");
 
@@ -647,14 +654,15 @@ namespace BoincRpc
                 FirstRequestTime = persistentFileXfer.ElementDateTimeOffset("first_request_time");
                 NextRequestTime = persistentFileXfer.ElementDateTimeOffset("next_request_time");
                 TimeSoFar = persistentFileXfer.ElementTimeSpan("time_so_far");
-                BytesTransferred = persistentFileXfer.ElementDouble("last_bytes_xferred");
+                LastBytesTransferred = persistentFileXfer.ElementDouble("last_bytes_xferred");
+                IsUpload = IsUpload || persistentFileXfer.ElementBoolean("is_upload");
             }
 
             XElement fileXfer = element.Element("file_xfer");
 
             if (fileXfer != null)
             {
-                // bytes_xferred
+                BytesTransferred = fileXfer.ElementDouble("bytes_xferred");
                 FileOffset = fileXfer.ElementDouble("file_offset");
                 TransferSpeed = fileXfer.ElementDouble("xfer_speed");
                 Url = fileXfer.ElementString("url");
