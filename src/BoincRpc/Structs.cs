@@ -364,7 +364,7 @@ namespace BoincRpc
         public TimeSpan AtiBackoffInterval { get; private set; }
         public double DurationCorrectionFactor { get; private set; }
         public bool MasterUrlFetchPending { get; private set; }
-        public int SchedulerRpcPending { get; private set; }
+        public RpcReason SchedulerRpcPending { get; private set; }
         public bool SchedulerRpcInProgress { get; private set; }
         public bool NonCpuIntensive { get; private set; }
         public bool Suspended { get; private set; }
@@ -410,7 +410,7 @@ namespace BoincRpc
             AtiBackoffInterval = element.ElementTimeSpan("ati_backoff_interval");
             DurationCorrectionFactor = element.ElementDouble("duration_correction_factor");
             MasterUrlFetchPending = element.ContainsElement("master_url_fetch_pending");
-            SchedulerRpcPending = element.ElementInt("sched_rpc_pending");
+            SchedulerRpcPending = (RpcReason)element.ElementInt("sched_rpc_pending");
             NonCpuIntensive = element.ContainsElement("non_cpu_intensive");
             Suspended = element.ContainsElement("suspended_via_gui");
             DontRequestMoreWork = element.ContainsElement("dont_request_more_work");

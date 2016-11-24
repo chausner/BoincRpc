@@ -80,7 +80,8 @@
 
     public enum RpcReason
     {
-        UserRequest = 1,
+        None,
+        UserRequest,
         ResultsDue,
         NeedWork,
         TrickleUp,
