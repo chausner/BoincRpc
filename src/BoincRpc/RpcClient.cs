@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -924,6 +925,7 @@ namespace BoincRpc
         }
     }
 
+    [Serializable]
     public class InvalidRpcResponseException : Exception
     {
         public InvalidRpcResponseException()
@@ -937,8 +939,13 @@ namespace BoincRpc
         public InvalidRpcResponseException(string message, Exception inner) : base(message, inner)
         {
         }
+        
+        protected InvalidRpcResponseException(SerializationInfo info, StreamingContext context)
+        {
+        }
     }
 
+    [Serializable]
     public class RpcFailureException : Exception
     {
         public RpcFailureException()
@@ -952,8 +959,13 @@ namespace BoincRpc
         public RpcFailureException(string message, Exception inner) : base(message, inner)
         {
         }
+                
+        protected RpcFailureException(SerializationInfo info, StreamingContext context)
+        {
+        }
     }
 
+    [Serializable]
     public class RpcUnauthorizedException : Exception
     {
         public RpcUnauthorizedException()
@@ -965,6 +977,10 @@ namespace BoincRpc
         }
 
         public RpcUnauthorizedException(string message, Exception inner) : base(message, inner)
+        {
+        }
+                
+        protected RpcUnauthorizedException(SerializationInfo info, StreamingContext context)
         {
         }
     }

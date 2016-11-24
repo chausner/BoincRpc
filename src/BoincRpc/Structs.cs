@@ -796,7 +796,7 @@ namespace BoincRpc
     }
 
     // in client\net_stats.cpp
-    public struct DailyTransferStatistics
+    public class DailyTransferStatistics
     {
         public DateTime Day { get; }
         public double BytesUploaded { get; }
@@ -832,6 +832,16 @@ namespace BoincRpc
         public override int GetHashCode()
         {
             return StartHour.GetHashCode() ^ EndHour.GetHashCode();
+        }
+        
+        public static bool operator ==(StartEndTime obj1, object obj2)
+        {
+            return obj1.Equals(obj2);
+        }
+
+        public static bool operator !=(StartEndTime obj1, object obj2)
+        {
+            return !obj1.Equals(obj2);
         }
 
         public override string ToString()
