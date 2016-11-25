@@ -226,8 +226,29 @@ namespace BoincRpc
                 throw new ArgumentNullException(nameof(project));
 
             CheckConnected();
+            
+            string tag;
 
-            string tag = "project_" + operation.ToString().ToLower();
+            switch (operation)
+            {
+                case ProjectOperation.Reset:
+                case ProjectOperation.Detach:
+                case ProjectOperation.Update:
+                case ProjectOperation.Suspend:
+                case ProjectOperation.Resume:
+                case ProjectOperation.AllowMoreWork:
+                case ProjectOperation.NoMoreWork:
+                    tag = "project_" + operation.ToString().ToLower();
+                    break;
+                case ProjectOperation.DetachWhenDone:
+                    tag = "project_detach_when_done";
+                    break;
+                case ProjectOperation.DontDetachWhenDone:
+                    tag = "project_dont_detach_when_done";
+                    break;
+                default:
+                    throw new ArgumentException("Invalid project operation.", nameof(operation));
+            }
 
             XElement request = new XElement(tag,
                 new XElement("project_url", project.MasterUrl));
