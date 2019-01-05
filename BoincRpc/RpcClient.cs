@@ -109,7 +109,8 @@ namespace BoincRpc
 
         /// <summary>
         /// Get the client's 'static' state, i.e. its projects, apps, app_versions, workunits and results.
-        /// This call is relatively slow and should only be done initially, and when needed later. 
+        /// This call is relatively slow and should only be done initially, and when needed later.
+        /// This request not requiring authentication.
         /// </summary>
         /// <returns>Client's entire state.</returns>
         public async Task<CoreClientState> GetStateAsync()
@@ -128,6 +129,7 @@ namespace BoincRpc
         /// Get a list of results.
         /// Those that are in progress will have information such as CPU time and fraction done.
         /// Each result includes a name; use CoreClientState (lookup_result) to find this result in the current static state; if it's not there, call GetStateAsync() again.
+        /// This request not requiring authentication.
         /// </summary>
         /// <returns>List of results</returns>
         /// <seealso cref="GetStateAsync()"></seealso>
