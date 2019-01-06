@@ -448,15 +448,6 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Show status of projects and active tasks. This request not requiring authentication.
-        /// </summary>
-        /// <returns>List of projects and of active results</returns>
-        public async Task GetSimpleGuiInfosAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
         /// Run benchmarks. This request requiring authentication.
         /// </summary>
         /// <returns></returns>
@@ -673,16 +664,7 @@ namespace BoincRpc
 
             return new HostInfo(response);
         }
-
-        /// <summary>
-        /// Set the product_name field of host_info. This request requiring authentication.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<HostInfo> SetHostInfoAsync()
-        {
-            throw new NotImplementedException();
-        }
-
+        
         /// <summary>
         /// Tell client to exit. This request requiring authentication.
         /// </summary>
@@ -1039,24 +1021,6 @@ namespace BoincRpc
             XElement request = new XElement("set_cc_config", coreClientConfig);
 
             CheckResponse(await PerformRpcAsync(request));
-        }
-
-        /// <summary>
-        /// Report the status of an android device to the client including:
-        /// - whether the device is plugged in via USB or AC power
-        /// - the battery charge level, state, and temperature
-        /// - whether the device is connected via WiFi
-        /// - whether the user is active(e.g.whether the screen is on)
-        /// - the device name(supplied by the user)
-        /// This RPC also serves as a "keep-alive": if the BOINC client doesn't get one in 30 seconds, it will suspend computation.
-        /// So Android GUIs should call it fairly often (every 10 sec at least).
-        /// There is no C++ binding for this RPC; there's a Java binding in the Android GUI code: https://github.com/BOINC/boinc/blob/master/android/BOINC/app/src/main/java/edu/berkeley/boinc/rpc/RpcClient.java
-        /// </summary>
-        /// <param name="coreClientConfig"></param>
-        /// <returns></returns>
-        public async Task ReportAndroidDeviceStatusAsync()
-        {
-            throw new NotImplementedException();
         }
 
         /// <summary>
