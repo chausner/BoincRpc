@@ -1215,7 +1215,7 @@ namespace BoincRpc
 
         protected void CheckDisposed()
         {
-            if (semaphore == null)
+            if (disposed)
                 throw new ObjectDisposedException(GetType().FullName);
         }
 
