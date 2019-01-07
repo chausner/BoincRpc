@@ -14,8 +14,9 @@ namespace BoincRpc
 
     public class RpcClient : IDisposable
     {
-        protected TcpClient tcpClient;
+        private bool disposed = false;
 
+        protected TcpClient tcpClient;
         protected SemaphoreSlim semaphore = new SemaphoreSlim(1);        
 
         public Task ConnectAsync(string host, int port)
@@ -1186,6 +1187,9 @@ namespace BoincRpc
 
         protected virtual void Dispose(bool disposing)
         {
+            if (disposed)
+                return;
+
             if (disposing)
             {
                 if (tcpClient != null)
@@ -1199,16 +1203,19 @@ namespace BoincRpc
                     semaphore = null;
                 }
             }
+
+            disposed = true;
         }
 
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected void CheckDisposed()
         {
-            if (semaphore == null)
+            if (disposed)
                 throw new ObjectDisposedException(GetType().FullName);
         }
 
