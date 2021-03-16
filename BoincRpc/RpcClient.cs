@@ -1121,7 +1121,8 @@ namespace BoincRpc
             try
             {
                 response = XElement.Parse(responseText, LoadOptions.None);
-            } catch (XmlException exception)
+            }
+            catch (XmlException exception)
             {
                 throw new InvalidRpcResponseException("RPC response is malformed.", exception);
             }
