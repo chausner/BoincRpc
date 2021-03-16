@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <TestRunParameters>
+    <!-- Adapt these values if necessary -->
+    <Parameter name="RpcHost" value="localhost" />
+    <Parameter name="RpcPort" value="31416" />
+    <Parameter name="RpcPassword" value="" />
+  </TestRunParameters>
+</RunSettings>
