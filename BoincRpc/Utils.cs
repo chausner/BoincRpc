@@ -50,7 +50,7 @@ namespace BoincRpc
             return element.Element(name) != null;
         }
 
-        public static bool ElementBoolean(this XElement element, XName name, bool defaultValue = default(bool))
+        public static bool ElementBoolean(this XElement element, XName name, bool defaultValue = default)
         {
             XElement child = element.Element(name);
 
@@ -63,22 +63,22 @@ namespace BoincRpc
                     return (bool)child;
         }
 
-        public static int ElementInt(this XElement element, XName name, int defaultValue = default(int))
+        public static int ElementInt(this XElement element, XName name, int defaultValue = default)
         {
             return ((int?)element.Element(name)).GetValueOrDefault(defaultValue);
         }
 
-        public static double ElementDouble(this XElement element, XName name, double defaultValue = default(double))
+        public static double ElementDouble(this XElement element, XName name, double defaultValue = default)
         {
             return ((double?)element.Element(name)).GetValueOrDefault(defaultValue);
         }
 
-        public static string ElementString(this XElement element, XName name, string defaultValue = default(string))
+        public static string ElementString(this XElement element, XName name, string defaultValue = default)
         {
             return (string)element.Element(name) ?? defaultValue;
         }
 
-        public static DateTimeOffset ElementDateTimeOffset(this XElement element, XName name, DateTimeOffset defaultValue = default(DateTimeOffset))
+        public static DateTimeOffset ElementDateTimeOffset(this XElement element, XName name, DateTimeOffset defaultValue = default)
         {
             double? t = (double?)element.Element(name);
 
@@ -88,7 +88,7 @@ namespace BoincRpc
                 return Utils.ConvertUnixTimeToDateTime(t.Value);
         }
 
-        public static TimeSpan ElementTimeSpan(this XElement element, XName name, TimeSpan defaultValue = default(TimeSpan))
+        public static TimeSpan ElementTimeSpan(this XElement element, XName name, TimeSpan defaultValue = default)
         {
             double? t = (double?)element.Element(name);
 
