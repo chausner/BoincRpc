@@ -488,9 +488,9 @@ namespace BoincRpc
                     new XElement("http_user_passwd", proxyInfo.HttpUserPassword),
                     new XElement("socks_server_name", proxyInfo.SocksServerName),
                     new XElement("socks_server_port", proxyInfo.SocksServerPort),
-                    new XElement("socks_version", proxyInfo.SocksVersion),
                     new XElement("socks5_user_name", proxyInfo.Socks5UserName),
                     new XElement("socks5_user_passwd", proxyInfo.Socks5UserPassword),
+                    new XElement("socks5_remote_dns", proxyInfo.Socks5RemoteDns ? 1 : 0),
                     new XElement("no_proxy", proxyInfo.NoProxyHosts)));
 
             CheckResponse(await PerformRpcAsync(request));

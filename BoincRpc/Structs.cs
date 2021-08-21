@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
@@ -740,7 +740,6 @@ namespace BoincRpc
         public bool UseHttpProxy { get; set; }
         public bool UseSocksProxy { get; set; }
         public bool UseHttpAuthentication { get; set; }
-        public int SocksVersion { get; set; }
         public string HttpServerName { get; set; }
         public int HttpServerPort { get; set; }
         public string SocksServerName { get; set; }
@@ -749,6 +748,7 @@ namespace BoincRpc
         public string HttpUserPassword { get; set; }
         public string Socks5UserName { get; set; }
         public string Socks5UserPassword { get; set; }
+        public bool Socks5RemoteDns { get; set; }
         public string NoProxyHosts { get; set; }
 
         public ProxyInfo() // TODO: initialize properties to default values
@@ -760,7 +760,6 @@ namespace BoincRpc
             UseHttpProxy = element.ContainsElement("use_http_proxy");
             UseSocksProxy = element.ContainsElement("use_socks_proxy");
             UseHttpAuthentication = element.ContainsElement("use_http_auth");
-            SocksVersion = element.ElementInt("socks_version");
             HttpServerName = element.ElementString("http_server_name");
             HttpServerPort = element.ElementInt("http_server_port");
             SocksServerName = element.ElementString("socks_server_name");
@@ -769,6 +768,7 @@ namespace BoincRpc
             HttpUserPassword = element.ElementString("http_user_passwd");
             Socks5UserName = element.ElementString("socks5_user_name");
             Socks5UserPassword = element.ElementString("socks5_user_passwd");
+            Socks5RemoteDns = element.ElementInt("socks5_remote_dns") != 0;
             NoProxyHosts = element.ElementString("no_proxy");
         }
     }
