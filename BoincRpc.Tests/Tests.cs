@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -551,6 +551,35 @@ namespace BoincRpc.Tests
             {
                 ProxyInfo proxyInfo = await rpcClient.GetProxySettingsAsync();
                 await rpcClient.SetProxySettingsAsync(proxyInfo);
+            });
+        }
+
+        [TestMethod]
+        public Task GetAppConfig()
+        {
+            return ConnectAndAuthorize(async rpcClient =>
+            {
+                try 
+                {
+                    XElement appConfig = await rpcClient.GetAppConfigAsync("http://boinc.bakerlab.org/rosetta/");
+                    Assert.AreEqual("app_config", appConfig.Name);    
+                }
+                catch (RpcFailureException ex)
+                {
+                    // An RpcFailureException will be thrown if no app_config.xml exists for the project
+                    Assert.AreEqual("app_config.xml not found", ex.Message);
+                }  
+            });
+        }
+
+        [TestMethod]
+        public Task SetAppConfig()
+        {
+            return ConnectAndAuthorize(async rpcClient =>
+            {
+                XElement appConfig = new XElement("app_config",
+                    new XElement("dummy", 42));
+                await rpcClient.SetAppConfigAsync("http://boinc.bakerlab.org/rosetta/", appConfig);
             });
         }
     }

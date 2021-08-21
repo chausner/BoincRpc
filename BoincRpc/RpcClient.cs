@@ -1088,6 +1088,53 @@ namespace BoincRpc
             return response.Elements("old_result").Select(e => new OldResult(e)).ToArray();
         }
 
+        /// <summary>
+        /// Get the app config for a project. This request requires authentication.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public async Task<XElement> GetAppConfigAsync(string url)
+        {
+            CheckDisposed();
+
+            if (url == null)
+                throw new ArgumentNullException(nameof(url));
+
+            CheckConnected();
+
+            XElement request = new XElement("get_app_config",
+                new XElement("url", url));
+
+            XElement response = await PerformRpcAsync(request);
+
+            CheckResponse(response, "app_config");
+
+            return response;
+        }
+
+        /// <summary>
+        /// Set the app config for a project. This request requires authentication.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public async Task SetAppConfigAsync(string url, XElement appConfig)
+        {
+            CheckDisposed();
+
+            if (url == null)
+                throw new ArgumentNullException(nameof(url));
+            if (appConfig == null)
+                throw new ArgumentNullException(nameof(appConfig));
+
+            CheckConnected();
+
+            XElement request = new XElement("set_app_config",
+                new XElement("url", url),
+                appConfig);
+
+            CheckResponse(await PerformRpcAsync(request));
+        }
+
         protected void CheckResponse(XElement response, string expectedElementName = null)
         {
             string elementName = response.Name.ToString();
