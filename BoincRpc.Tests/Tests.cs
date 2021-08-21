@@ -106,7 +106,7 @@ namespace BoincRpc.Tests
         {
             return ConnectAndAuthorize(async rpcClient =>
             {
-                AccountInfo accountInfo = await rpcClient.CreateAccountAsync("http://non.existing.domain.xyz", "non@existing.mail", "password", "username", "team", CancellationToken.None);
+                AccountInfo accountInfo = await rpcClient.CreateAccountAsync("http://non.existing.domain.xyz", "non@existing.mail", "password", "username", "team", false, CancellationToken.None);
 
                 Assert.AreEqual(ErrorCode.GetHostByName, accountInfo.ErrorCode);
             });

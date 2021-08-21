@@ -834,9 +834,9 @@ namespace BoincRpc
             return new AccountInfo(await PollRpcAsync("<lookup_account_poll/>", cancellationToken));
         }
 
-        public Task<AccountInfo> CreateAccountAsync(string url, string emailAddress, string password, string username, CancellationToken cancellationToken)
+        public Task<AccountInfo> CreateAccountAsync(string url, string emailAddress, string password, string username, bool consentedToTerms, CancellationToken cancellationToken)
         {
-            return CreateAccountAsync(url, emailAddress, password, username, null, cancellationToken);
+            return CreateAccountAsync(url, emailAddress, password, username, null, consentedToTerms, cancellationToken);
         }
 
         /// <summary>
@@ -848,9 +848,10 @@ namespace BoincRpc
         /// <param name="password"></param>
         /// <param name="username"></param>
         /// <param name="teamName"></param>
+        /// <param name="consentedToTerms"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<AccountInfo> CreateAccountAsync(string url, string emailAddress, string password, string username, string teamName, CancellationToken cancellationToken)
+        public async Task<AccountInfo> CreateAccountAsync(string url, string emailAddress, string password, string username, string teamName, bool consentedToTerms, CancellationToken cancellationToken)
         {
             CheckDisposed();
 
@@ -872,7 +873,8 @@ namespace BoincRpc
                 new XElement("email_addr", emailAddress),
                 new XElement("passwd_hash", passwordHash),
                 new XElement("user_name", username),
-                new XElement("team_name", teamName));
+                new XElement("team_name", teamName),
+                consentedToTerms ? new XElement("consented_to_terms") : null);
 
             CheckResponse(await PerformRpcAsync(request));
 
