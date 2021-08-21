@@ -834,6 +834,39 @@ namespace BoincRpc
             return new AccountInfo(await PollRpcAsync("<lookup_account_poll/>", cancellationToken));
         }
 
+        /// <summary>
+        /// Account operation. Look for an account in a given project using LDAP authentication.
+        /// This request requires authentication.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="emailAddress"></param>
+        /// <param name="password"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<AccountInfo> LookupAccountLdapAsync(string url, string uid, string password, CancellationToken cancellationToken)
+        {
+            CheckDisposed();
+
+            if (url == null)
+                throw new ArgumentNullException(nameof(url));
+            if (uid == null)
+                throw new ArgumentNullException(nameof(uid));
+            if (password == null)
+                throw new ArgumentNullException(nameof(password));
+
+            CheckConnected();
+
+            XElement request = new XElement("lookup_account",
+                new XElement("url", url),
+                new XElement("email_addr", uid),
+                new XElement("passwd_hash", password),
+                new XElement("ldap_auth", 1));
+
+            CheckResponse(await PerformRpcAsync(request));
+
+            return new AccountInfo(await PollRpcAsync("<lookup_account_poll/>", cancellationToken));
+        }
+
         public Task<AccountInfo> CreateAccountAsync(string url, string emailAddress, string password, string username, bool consentedToTerms, CancellationToken cancellationToken)
         {
             return CreateAccountAsync(url, emailAddress, password, username, null, consentedToTerms, cancellationToken);

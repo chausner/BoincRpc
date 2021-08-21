@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -436,6 +436,17 @@ namespace BoincRpc.Tests
             return ConnectAndAuthorize(async rpcClient =>
             {
                 AccountInfo accountInfo = await rpcClient.LookupAccountAsync("http://boinc.bakerlab.org/rosetta/", "non@existing.mail", "password", CancellationToken.None);
+
+                Assert.AreEqual(ErrorCode.DBNotFound, accountInfo.ErrorCode);
+            });
+        }
+
+        [TestMethod]
+        public Task LookupAccountLdap()
+        {
+            return ConnectAndAuthorize(async rpcClient =>
+            {
+                AccountInfo accountInfo = await rpcClient.LookupAccountLdapAsync("http://boinc.bakerlab.org/rosetta/", "@nonexistinguid", "password", CancellationToken.None);
 
                 Assert.AreEqual(ErrorCode.DBNotFound, accountInfo.ErrorCode);
             });
