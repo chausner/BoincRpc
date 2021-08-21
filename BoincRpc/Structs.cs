@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
@@ -67,14 +67,18 @@ namespace BoincRpc
     public class ProjectInitStatus
     {
         public string Name { get; }
+        // public string TeamName { get; } // appears unused in client
         public string Url { get; }
         public bool HasAccountKey { get; }
+        public bool Embedded { get; }
 
         internal ProjectInitStatus(XElement element)
         {
             Name = element.ElementString("name");
+            // TeamName = element.ElementString("team_name");
             Url = element.ElementString("url");
             HasAccountKey = element.ElementBoolean("has_account_key");
+            Embedded = element.ElementBoolean("embedded");
         }
 
         public override string ToString()
@@ -285,6 +289,7 @@ namespace BoincRpc
     {
         public string Name { get; }
         public string Url { get; }
+        public string WebUrl { get; }
         public string GeneralArea { get; }
         public string SpecificArea { get; }
         public string Description { get; }
@@ -296,6 +301,7 @@ namespace BoincRpc
         {
             Name = element.ElementString("name");
             Url = element.ElementString("url");
+            WebUrl = element.ElementString("web_url");
             GeneralArea = element.ElementString("general_area");
             SpecificArea = element.ElementString("specific_area");
             Description = element.ElementString("description");
@@ -482,6 +488,7 @@ namespace BoincRpc
         public double RscDiskBound { get; }
 
         public string ProjectUrl { get; }
+        public IReadOnlyList<Keyword> JobKeywords { get; }
 
         internal Workunit(XElement element, Project project)
         {
@@ -494,11 +501,38 @@ namespace BoincRpc
             RscFpOpsBound = element.ElementDouble("rsc_fpops_bound");
             RscMemoryBound = element.ElementDouble("rsc_memory_bound");
             RscDiskBound = element.ElementDouble("rsc_disk_bound");
+
+            JobKeywords = element.Element("job_keywords")?.Elements("keyword").Select(e => new Keyword(e)).ToArray();
         }
 
         public override string ToString()
         {
             return $"{Name} (App: {AppName} {VersionNumber}, Project: {ProjectUrl})";
+        }
+    }
+
+    public class Keyword
+    {
+        public int ID { get; }
+        public string Name { get; }
+        public string Description { get; }
+        public int Parent { get; }
+        public int Level { get; }
+        public int Category { get; }
+
+        internal Keyword(XElement element)
+        {
+            ID = element.ElementInt("id");
+            Name = element.ElementString("name");
+            Description = element.ElementString("description");
+            Parent = element.ElementInt("parent");
+            Level = element.ElementInt("level");
+            Category = element.ElementInt("category");
+        }
+
+        public override string ToString()
+        {
+            return $"{Name} ({Description})";
         }
     }
 
@@ -967,6 +1001,7 @@ namespace BoincRpc
         }
     }
 
+    // see CC_STATE::parse in https://github.com/BOINC/boinc/blob/master/lib/gui_rpc_client_ops.cpp
     public class CoreClientState
     {
         public IReadOnlyList<Project> Projects { get; }
@@ -979,6 +1014,9 @@ namespace BoincRpc
         public bool ExecutingAsDaemon { get; }
         public bool HaveCuda { get; }
         public bool HaveAti { get; }
+
+        // TODO: add host_info
+        // TODO: add time_stats
 
         internal CoreClientState(XElement element)
         {
@@ -1036,6 +1074,7 @@ namespace BoincRpc
         }
     }
 
+    // see handle_get_cc_status in https://github.com/BOINC/boinc/blob/master/client/gui_rpc_server_ops.cpp
     public class CoreClientStatus
     {
         public NetworkStatus NetworkStatus { get; }
@@ -1080,6 +1119,7 @@ namespace BoincRpc
         }
     }
 
+    // see HOST_INFO::write in https://github.com/BOINC/boinc/blob/master/lib/hostinfo.cpp
     public class HostInfo
     {
         public TimeSpan TimeZone { get; }
@@ -1103,11 +1143,16 @@ namespace BoincRpc
         public double FreeDiskSpace { get; }
         public string OSName { get; }
         public string OSVersion { get; }
+        public int NumberOfUsableCoprocessors { get; }
+        public bool WslAvailable { get; }
         public string ProductName { get; }
         public string MacAddress { get; }
         public string VirtualBoxVersion { get; }
 
+        public IReadOnlyList<Wsl> Wsls { get; }
+
         // TODO: add coproc properties
+        // TODO: add opencl_cpu_prop
 
         internal HostInfo(XElement element)
         {
@@ -1131,14 +1176,40 @@ namespace BoincRpc
             FreeDiskSpace = element.ElementDouble("d_free");
             OSName = element.ElementString("os_name");
             OSVersion = element.ElementString("os_version");
+            NumberOfUsableCoprocessors = element.ElementInt("n_usable_coprocs");
+            WslAvailable = element.ElementBoolean("wsl_available");
             ProductName = element.ElementString("product_name");
             MacAddress = element.ElementString("mac_address");
             VirtualBoxVersion = element.ElementString("virtualbox_version");
+
+            Wsls = element.Element("wsl")?.Elements("distro").Select(e => new Wsl(e)).ToArray();
         }
 
         public override string ToString()
         {
             return $"DomainName: {DomainName}, IP: {IPAddress}, OSName: {OSName}, OSVersion: {OSVersion}";
+        }
+    }
+
+    // see WSL::write_xml in https://github.com/BOINC/boinc/blob/master/lib/wslinfo.cpp
+    public class Wsl
+    {
+        public string DistroName { get; }
+        public string Name { get; }
+        public string Version { get; }
+        public bool IsDefault { get; }
+
+        internal Wsl(XElement element)
+        {
+            DistroName = element.ElementString("distro_name");
+            Name = element.ElementString("name");
+            Version = element.ElementString("version");
+            IsDefault = element.ElementInt("is_default") != 0;
+        }
+
+        public override string ToString()
+        {
+            return $"{Name} ({DistroName}, {Version}{(IsDefault ? ", default" : "")})";
         }
     }
 }
