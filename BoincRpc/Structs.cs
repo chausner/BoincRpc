@@ -1011,12 +1011,11 @@ namespace BoincRpc
         public IReadOnlyList<Result> Results { get; }
         public IReadOnlyList<string> Platforms { get; }
         public GlobalPreferences GlobalPreferences { get; }
+        public HostInfo HostInfo { get; }
+        public TimeStatistics TimeStatistics { get; }
         public bool ExecutingAsDaemon { get; }
         public bool HaveCuda { get; }
         public bool HaveAti { get; }
-
-        // TODO: add host_info
-        // TODO: add time_stats
 
         internal CoreClientState(XElement element)
         {
@@ -1034,6 +1033,9 @@ namespace BoincRpc
             XElement globalPreferences = element.Element("global_preferences");
             if (globalPreferences != null)
                 GlobalPreferences = new GlobalPreferences(globalPreferences);
+
+            HostInfo = new HostInfo(element.Element("host_info"));
+            TimeStatistics = new TimeStatistics(element.Element("time_stats"));
 
             foreach (XElement el in element.Elements())
             {
@@ -1071,6 +1073,43 @@ namespace BoincRpc
         public override string ToString()
         {
             return $"{Projects.Count} project(s), {Apps.Count} app(s), {Workunits.Count} workunit(s), {Results.Count} result(s)";
+        }
+    }
+
+    // see TIME_STATS::parse in https://github.com/BOINC/boinc/blob/master/lib/gui_rpc_client_ops.cpp
+    public class TimeStatistics
+    {
+        public DateTimeOffset Now { get; }
+        public double OnFraction { get; }
+        public double ConnectedFraction { get; }
+        public double CpuAndNetworkAvailableFraction { get; }
+        public double ActiveFraction { get; }
+        public double GpuActiveFraction { get; }
+        public DateTimeOffset ClientStartTime { get; }
+        public TimeSpan PreviousUptime { get; }
+        public TimeSpan SessionActiveDuration { get; }
+        public TimeSpan SessionGpuActiveDuration { get; }
+        public DateTimeOffset TotalStartTime { get; }
+        public TimeSpan TotalDuration { get; }
+        public TimeSpan TotalActiveDuration { get; }
+        public TimeSpan TotalGpuActiveDuration { get; }
+   
+        internal TimeStatistics(XElement element)
+        {
+            Now = element.ElementDateTimeOffset("now");
+            OnFraction = element.ElementDouble("on_frac");
+            ConnectedFraction = element.ElementDouble("connected_frac");
+            CpuAndNetworkAvailableFraction = element.ElementDouble("cpu_and_network_available_frac");
+            ActiveFraction = element.ElementDouble("active_frac");
+            GpuActiveFraction = element.ElementDouble("gpu_active_frac");
+            ClientStartTime = element.ElementDateTimeOffset("client_start_time");
+            PreviousUptime = element.ElementTimeSpan("previous_uptime");
+            SessionActiveDuration = element.ElementTimeSpan("session_active_duration");
+            SessionGpuActiveDuration = element.ElementTimeSpan("session_gpu_active_duration");
+            TotalStartTime = element.ElementDateTimeOffset("total_start_time");
+            TotalDuration = element.ElementTimeSpan("total_duration");
+            TotalActiveDuration = element.ElementTimeSpan("total_active_duration");
+            TotalGpuActiveDuration = element.ElementTimeSpan("total_gpu_active_duration");
         }
     }
 
