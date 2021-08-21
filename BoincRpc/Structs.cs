@@ -785,7 +785,7 @@ namespace BoincRpc
         public bool Socks5RemoteDns { get; set; }
         public string NoProxyHosts { get; set; }
 
-        public ProxyInfo() // TODO: initialize properties to default values
+        public ProxyInfo()
         {
         }
 
