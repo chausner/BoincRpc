@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -85,12 +85,15 @@ namespace BoincRpc
         /// Exchange version info with the client.
         /// This request does not require authentication.
         /// </summary>
+        /// <param name="clientName">The program name of the client.</param>
         /// <param name="localVersion">The version of the request's source.</param>
         /// <returns>The client's version info is returned.</returns>
-        public async Task<VersionInfo> ExchangeVersionsAsync(VersionInfo localVersion)
+        public async Task<VersionInfo> ExchangeVersionsAsync(string clientName, VersionInfo localVersion)
         {
             CheckDisposed();
 
+            if (clientName == null)
+                throw new ArgumentNullException(nameof(clientName));
             if (localVersion == null)
                 throw new ArgumentNullException(nameof(localVersion));
 
@@ -99,7 +102,8 @@ namespace BoincRpc
             XElement request = new XElement("exchange_versions",
                 new XElement("major", localVersion.Major),
                 new XElement("minor", localVersion.Minor),
-                new XElement("release", localVersion.Release));
+                new XElement("release", localVersion.Release),
+                new XElement("name", clientName));
 
             XElement response = await PerformRpcAsync(request);
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -93,7 +93,7 @@ namespace BoincRpc.Tests
         {
             return ConnectAndAuthorize(async rpcClient =>
             {
-                VersionInfo versionInfo = await rpcClient.ExchangeVersionsAsync(new VersionInfo(7, 6, 33));
+                VersionInfo versionInfo = await rpcClient.ExchangeVersionsAsync("BoincRpc", new VersionInfo(7, 6, 33));
 
                 Assert.IsTrue(versionInfo.Major >= 7);
             });
