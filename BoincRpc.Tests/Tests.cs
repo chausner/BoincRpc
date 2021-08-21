@@ -63,6 +63,30 @@ namespace BoincRpc.Tests
         }
 
         [TestMethod]
+        public Task AccountManagerDetach()
+        {
+            return ConnectAndAuthorize(async rpcClient =>
+            {
+                AccountManagerRpcReply reply = await rpcClient.AccountManagerDetachAsync(CancellationToken.None);
+
+                // ErrorCode.InvalidUrl will be returned if not attached to any account manager
+                Assert.AreEqual(ErrorCode.InvalidUrl, reply.ErrorCode);
+            });
+        }
+
+        [TestMethod]
+        public Task AccountManagerUpdate()
+        {
+            return ConnectAndAuthorize(async rpcClient =>
+            {
+                // An RpcFailureException will be thrown if not attached to any account manager
+                RpcFailureException ex = await Assert.ThrowsExceptionAsync<RpcFailureException>(() => rpcClient.AccountManagerUpdateAsync(CancellationToken.None));
+                
+                Assert.AreEqual("bad arg", ex.Message);
+            });
+        }
+
+        [TestMethod]
         public Task Close()
         {
             return ConnectAndAuthorize(rpcClient =>

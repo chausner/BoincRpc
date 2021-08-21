@@ -683,7 +683,7 @@ namespace BoincRpc
 
         /// <summary>
         /// Account manager operation. Do an Account Manager RPC to the given URL, passing the given name/password.
-        /// If the RPC is successful, save the account info on disk (it can be retrieved later using GetAccountManagerInfoAsync()). If url is the empty string, remove account manager info from disk. 
+        /// If the RPC is successful, save the account info on disk (it can be retrieved later using GetAccountManagerInfoAsync()).
         /// This request requires authentication.
         /// </summary>
         /// <param name="url"></param>
@@ -709,9 +709,34 @@ namespace BoincRpc
                 new XElement("name", name),
                 new XElement("password", password));
 
-            // await PerformRpcAsync("<acct_mgr_rpc>\n<use_config_file/>\n</acct_mgr_rpc>");
-
             CheckResponse(await PerformRpcAsync(request));
+
+            return new AccountManagerRpcReply(await PollRpcAsync("<acct_mgr_rpc_poll/>", cancellationToken));
+        }
+
+        /// <summary>
+        /// Account manager operation. Remove account manager info from disk.
+        /// This request requires authentication.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task<AccountManagerRpcReply> AccountManagerDetachAsync(CancellationToken cancellationToken)
+        {
+            return AccountManagerAttachAsync(string.Empty, string.Empty, string.Empty, cancellationToken);
+        }
+
+        /// <summary>
+        /// Account manager operation. Do an RPC to the current account manager.
+        /// This request requires authentication.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<AccountManagerRpcReply> AccountManagerUpdateAsync(CancellationToken cancellationToken)
+        {
+            CheckDisposed();
+            CheckConnected();
+
+            CheckResponse(await PerformRpcAsync("<acct_mgr_rpc>\n<use_config_file/>\n</acct_mgr_rpc>"));
 
             return new AccountManagerRpcReply(await PollRpcAsync("<acct_mgr_rpc_poll/>", cancellationToken));
         }
