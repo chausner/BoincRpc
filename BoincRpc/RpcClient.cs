@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -669,6 +669,19 @@ namespace BoincRpc
             return new HostInfo(response);
         }
         
+        /// <summary>
+        /// Tell the client to get host parameters (RAM and disk sizes, #CPUs) again.
+        /// Do this if you're running the client in a container, and you change the parameters of the container.
+        /// This request requires authentication.
+        /// </summary>
+        public async Task ResetHostInfoAsync()
+        {
+            CheckDisposed();
+            CheckConnected();
+
+            CheckResponse(await PerformRpcAsync("<reset_host_info/>"));
+        }
+
         /// <summary>
         /// Tell client to exit. This request requires authentication.
         /// </summary>

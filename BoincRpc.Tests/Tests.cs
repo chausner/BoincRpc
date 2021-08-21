@@ -279,6 +279,15 @@ namespace BoincRpc.Tests
         }
 
         [TestMethod]
+        public Task ResetHostInfo()
+        {
+            return ConnectAndAuthorize(async rpcClient =>
+            {
+                await rpcClient.ResetHostInfoAsync();
+            });
+        }
+
+        [TestMethod]
         public Task GetMessageCount()
         {
             return ConnectAndAuthorize(async rpcClient =>
