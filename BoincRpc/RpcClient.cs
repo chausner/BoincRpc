@@ -1246,9 +1246,12 @@ namespace BoincRpc
 
         protected async Task<string> PerformRpcRawAsync(string request)
         {
-            await semaphore.WaitAsync().ConfigureAwait(false);
+            const int minReceiveBufferSize = 256;
 
-            MemoryStream reply = new MemoryStream();
+            byte[] replyBuffer = new byte[minReceiveBufferSize];
+            int replyLength = 0;
+
+            await semaphore.WaitAsync().ConfigureAwait(false);
 
             try
             {
@@ -1258,31 +1261,25 @@ namespace BoincRpc
 
                 await networkStream.WriteAsync(sendBuffer, 0, sendBuffer.Length).ConfigureAwait(false);
 
-                byte[] receiveBuffer = new byte[tcpClient.ReceiveBufferSize];
-
-                int bytesRead;
-
                 do
                 {
-                    bytesRead = await networkStream.ReadAsync(receiveBuffer, 0, receiveBuffer.Length).ConfigureAwait(false);
+                    if (replyBuffer.Length - replyLength < minReceiveBufferSize)
+                        Array.Resize(ref replyBuffer, replyBuffer.Length * 2);
+
+                    int bytesRead = await networkStream.ReadAsync(replyBuffer, replyLength, replyBuffer.Length - replyLength).ConfigureAwait(false);
 
                     if (bytesRead == 0)
-                        break;
+                        throw new InvalidRpcResponseException("RPC response is truncated.");
 
-                    reply.Write(receiveBuffer, 0, bytesRead);
-                }
-                while (receiveBuffer[bytesRead - 1] != 0x03);
+                    replyLength += bytesRead;
+                } while (replyBuffer[replyLength - 1] != 0x03);
             }
             finally
             {
                 semaphore.Release();
             }
 
-            reply.SetLength(reply.Length - 1);
-            reply.Seek(0, SeekOrigin.Begin);
-
-            using (StreamReader streamReader = new StreamReader(reply))
-                return streamReader.ReadToEnd();
+            return Encoding.ASCII.GetString(replyBuffer, 0, replyLength - 1);
         }
 
         public bool Connected
