@@ -2,12 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-	  <Version>1.0.0</Version>
+    <Version>1.0.0</Version>
     <PackageId>BoincRpc</PackageId>
-    <Authors>chausner</Authors>
+    <Authors>Christoph Hausner</Authors>
     <RepositoryUrl>https://github.com/chausner/BoincRpc</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>boinc rpc</PackageTags>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
     <Description>An asynchronous .NET Core implementation of the BOINC GUI RPC protocol.</Description>
   </PropertyGroup>
 
