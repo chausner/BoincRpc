@@ -18,6 +18,8 @@ namespace BoincRpc
         protected TcpClient tcpClient;
         protected SemaphoreSlim semaphore = new SemaphoreSlim(1);        
 
+        public TimeSpan PollingInterval { get; set; } = TimeSpan.FromSeconds(0.25);
+
         public Task ConnectAsync(string host, int port)
         {
             CheckDisposed();
@@ -1374,8 +1376,6 @@ namespace BoincRpc
                 return tcpClient != null && tcpClient.Connected;
             }
         }
-
-        public TimeSpan PollingInterval { get; set; } = TimeSpan.FromSeconds(0.25);
 
         protected virtual void Dispose(bool disposing)
         {
