@@ -23,7 +23,7 @@ namespace BoincRpc
         }
     }
 
-    internal static class ExtensionsMethods
+    internal static class ExtensionMethods
     {
         public static bool ContainsElement(this XElement element, XName name)
         {
