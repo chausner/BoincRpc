@@ -16,30 +16,10 @@ namespace BoincRpc
 
             StringBuilder hashString = new StringBuilder(hash.Length * 2);
 
-            for (int i = 0; i < hash.Length; i++)
-                hashString.Append(hash[i].ToString("x2"));
+            foreach (byte b in hash)
+                hashString.Append(b.ToString("x2"));
 
             return hashString.ToString();
-        }
-
-        public static DateTimeOffset ConvertUnixTimeToDateTime(double unixTime)
-        {
-            return DateTimeOffset.FromUnixTimeMilliseconds((long)(unixTime * 1000));
-        }
-
-        public static double ConvertDateTimeToUnixTime(DateTimeOffset dateTime)
-        {
-            return dateTime.ToUnixTimeMilliseconds() / 1000;
-        }
-
-        public static TimeSpan ConvertSecondsToTimeSpan(double seconds)
-        {
-            return TimeSpan.FromSeconds(seconds);
-        }
-
-        public static double ConvertTimeSpanToSeconds(TimeSpan timeSpan)
-        {
-            return timeSpan.TotalSeconds;
         }
     }
 
@@ -85,7 +65,7 @@ namespace BoincRpc
             if (t == null)
                 return defaultValue;
             else
-                return Utils.ConvertUnixTimeToDateTime(t.Value);
+                return DateTimeOffset.FromUnixTimeMilliseconds((long)(t.Value * 1000));
         }
 
         public static TimeSpan ElementTimeSpan(this XElement element, XName name, TimeSpan defaultValue = default)
@@ -95,7 +75,7 @@ namespace BoincRpc
             if (t == null)
                 return defaultValue;
             else
-                return Utils.ConvertSecondsToTimeSpan(t.Value);
+                return TimeSpan.FromSeconds(t.Value);
         }
     }
 }

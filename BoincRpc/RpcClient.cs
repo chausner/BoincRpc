@@ -380,7 +380,7 @@ namespace BoincRpc
 
             XElement request = new XElement("set_run_mode",
                 new XElement(mode.ToString().ToLower()),
-                new XElement("duration", Utils.ConvertTimeSpanToSeconds(duration)));
+                new XElement("duration", duration.TotalSeconds));
 
             CheckResponse(await PerformRpcAsync(request));
         }
@@ -403,7 +403,7 @@ namespace BoincRpc
 
             XElement request = new XElement("set_gpu_mode",
                 new XElement(mode.ToString().ToLower()),
-                new XElement("duration", Utils.ConvertTimeSpanToSeconds(duration)));
+                new XElement("duration", duration.TotalSeconds));
 
             CheckResponse(await PerformRpcAsync(request));
         }
@@ -426,7 +426,7 @@ namespace BoincRpc
 
             XElement request = new XElement("set_network_mode",
                 new XElement(mode.ToString().ToLower()),
-                new XElement("duration", Utils.ConvertTimeSpanToSeconds(duration)));
+                new XElement("duration", duration.TotalSeconds));
 
             CheckResponse(await PerformRpcAsync(request));
         }
