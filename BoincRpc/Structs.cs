@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
@@ -1249,6 +1249,23 @@ namespace BoincRpc
         public override string ToString()
         {
             return $"{Name} ({DistroName}, {Version}{(IsDefault ? ", default" : "")})";
+        }
+    }
+
+    public class NewerVersionInfo
+    {
+        public string NewerVersion { get; }
+        public string DownloadUrl { get; }
+
+        internal NewerVersionInfo(XElement element)
+        {
+            NewerVersion = element.ElementString("newer_version");
+            DownloadUrl = element.ElementString("download_url");
+        }
+
+        public override string ToString()
+        {
+            return $"{NewerVersion} ({DownloadUrl})";
         }
     }
 }

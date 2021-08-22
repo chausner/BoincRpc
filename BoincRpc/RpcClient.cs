@@ -933,8 +933,7 @@ namespace BoincRpc
         /// Get newer version number, if any, and download url.
         /// This request does not require authentication.
         /// </summary>
-        /// <returns>Strings describing newer versions of the client, if any</returns>
-        public async Task<string> GetNewerVersionAsync()
+        public async Task<NewerVersionInfo> GetNewerVersionAsync()
         {
             CheckDisposed();
             CheckConnected();
@@ -943,7 +942,7 @@ namespace BoincRpc
 
             CheckResponse(response, "boinc_gui_rpc_reply");
 
-            return response.ElementString("newer_version");
+            return new NewerVersionInfo(response);
         }
 
         /// <summary>

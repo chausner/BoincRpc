@@ -315,7 +315,7 @@ namespace BoincRpc.Tests
         {
             return ConnectAndAuthorize(async rpcClient =>
             {
-                string newerVersion = await rpcClient.GetNewerVersionAsync();
+                NewerVersionInfo newerVersionInfo = await rpcClient.GetNewerVersionAsync();
             });
         }
 
