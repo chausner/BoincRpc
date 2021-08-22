@@ -1139,19 +1139,17 @@ namespace BoincRpc
         /// <summary>
         /// Get the app config for a project. This request requires authentication.
         /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        public async Task<XElement> GetAppConfigAsync(string url)
+        public async Task<XElement> GetAppConfigAsync(Project project)
         {
             CheckDisposed();
 
-            if (url == null)
-                throw new ArgumentNullException(nameof(url));
+            if (project == null)
+                throw new ArgumentNullException(nameof(project));
 
             CheckConnected();
 
             XElement request = new XElement("get_app_config",
-                new XElement("url", url));
+                new XElement("url", project.MasterUrl));
 
             XElement response = await PerformRpcAsync(request);
 
@@ -1163,21 +1161,19 @@ namespace BoincRpc
         /// <summary>
         /// Set the app config for a project. This request requires authentication.
         /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        public async Task SetAppConfigAsync(string url, XElement appConfig)
+        public async Task SetAppConfigAsync(Project project, XElement appConfig)
         {
             CheckDisposed();
 
-            if (url == null)
-                throw new ArgumentNullException(nameof(url));
+            if (project == null)
+                throw new ArgumentNullException(nameof(project));
             if (appConfig == null)
                 throw new ArgumentNullException(nameof(appConfig));
 
             CheckConnected();
 
             XElement request = new XElement("set_app_config",
-                new XElement("url", url),
+                new XElement("url", project.MasterUrl),
                 appConfig);
 
             CheckResponse(await PerformRpcAsync(request));

@@ -1,5 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -581,7 +582,10 @@ namespace BoincRpc.Tests
             {
                 try 
                 {
-                    XElement appConfig = await rpcClient.GetAppConfigAsync("http://boinc.bakerlab.org/rosetta/");
+                    Project[] projects = await rpcClient.GetProjectStatusAsync();
+                    Project project = projects.First(p => p.MasterUrl == "http://boinc.bakerlab.org/rosetta/");
+
+                    XElement appConfig = await rpcClient.GetAppConfigAsync(project);
                     Assert.AreEqual("app_config", appConfig.Name);    
                 }
                 catch (RpcFailureException ex)
@@ -597,9 +601,12 @@ namespace BoincRpc.Tests
         {
             return ConnectAndAuthorize(async rpcClient =>
             {
+                Project[] projects = await rpcClient.GetProjectStatusAsync();
+                Project project = projects.First(p => p.MasterUrl == "http://boinc.bakerlab.org/rosetta/");
+
                 XElement appConfig = new XElement("app_config",
                     new XElement("dummy", 42));
-                await rpcClient.SetAppConfigAsync("http://boinc.bakerlab.org/rosetta/", appConfig);
+                await rpcClient.SetAppConfigAsync(project, appConfig);
             });
         }
 
