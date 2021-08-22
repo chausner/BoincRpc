@@ -1,7 +1,7 @@
 # BoincRpc
 An asynchronous .NET Core implementation of the [BOINC GUI RPC protocol](http://boinc.berkeley.edu/trac/wiki/GuiRpc).
 
-The implementation is up-to-date as of BOINC 7.6.33 and (almost) all RPC structures and commands are fully supported.
+The implementation is up-to-date as of BOINC 7.18.1 and (almost) all RPC structures and commands are fully supported.
 
 Usage
 -----
