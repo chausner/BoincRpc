@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -591,6 +591,54 @@ namespace BoincRpc.Tests
                 XElement appConfig = new XElement("app_config",
                     new XElement("dummy", 42));
                 await rpcClient.SetAppConfigAsync("http://boinc.bakerlab.org/rosetta/", appConfig);
+            });
+        }
+
+        [TestMethod]
+        public Task RunGraphicsApp()
+        {
+            return ConnectAndAuthorize(async rpcClient =>
+            {
+                try
+                {
+                    await rpcClient.RunGraphicsAppAsync(-1, true, "");
+                }
+                catch (RpcFailureException ex)
+                {
+                    Assert.AreEqual("run_graphics_app RPC is currently available only on Mac OS", ex.Message);
+                }  
+            });
+        }
+
+        [TestMethod]
+        public Task StopGraphicsApp()
+        {
+            return ConnectAndAuthorize(async rpcClient =>
+            {
+                try
+                {
+                    await rpcClient.StopGraphicsAppAsync(1234567, "");
+                }
+                catch (RpcFailureException ex)
+                {
+                    Assert.AreEqual("run_graphics_app RPC is currently available only on Mac OS", ex.Message);
+                }  
+            });
+        }
+
+        [TestMethod]
+        public Task TestGraphicsApp()
+        {
+            return ConnectAndAuthorize(async rpcClient =>
+            {
+                try
+                {
+                    await rpcClient.TestGraphicsAppAsync(1234567);
+                }
+                catch (RpcFailureException ex)
+                {
+                    Assert.AreEqual("run_graphics_app RPC is currently available only on Mac OS", ex.Message);
+                }  
             });
         }
     }

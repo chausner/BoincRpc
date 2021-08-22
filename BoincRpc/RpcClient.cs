@@ -1168,6 +1168,80 @@ namespace BoincRpc
             CheckResponse(await PerformRpcAsync(request));
         }
 
+        /// <summary>
+        /// Start graphics app (only on macOS 10.15 or later).
+        /// This request requires authentication.
+        /// </summary>
+        /// <param name="slot">Slot number of the task for which to start the graphics app, or -1 to start the default screensaver.</param>
+        /// <param name="fullscreen">Whether to start the graphics app full screen or in windowed mode.</param>
+        /// <param name="screensaverLoginUser">User name of the user that invoked the screen saver (the currently logged-in user).</param>
+        /// <returns></returns>
+        public async Task RunGraphicsAppAsync(int slot, bool fullscreen, string screensaverLoginUser)
+        {
+            CheckDisposed();
+
+            if (screensaverLoginUser == null)
+                throw new ArgumentNullException(nameof(screensaverLoginUser));
+
+            CheckConnected();
+
+            string request = "<run_graphics_app>" +
+                new XElement("slot", slot) +
+                (fullscreen ? "<runfullscreen/>" : "<run/>") +
+                new XElement("ScreensaverLoginUser", screensaverLoginUser) +
+                "</run_graphics_app>";
+
+            CheckResponse(await PerformRpcAsync(request));
+        }
+
+        /// <summary>
+        /// Stop a running graphics app (only on macOS 10.13 or later).
+        /// This request requires authentication.
+        /// </summary>
+        /// <param name="graphicsPid">Process ID of the graphics app to stop.</param>
+        /// <param name="screensaverLoginUser">User name of the user that invoked the screen saver (the currently logged-in user).</param>
+        /// <returns></returns>
+        public async Task StopGraphicsAppAsync(int graphicsPid, string screensaverLoginUser)
+        {
+            CheckDisposed();
+
+            if (screensaverLoginUser == null)
+                throw new ArgumentNullException(nameof(screensaverLoginUser));
+
+            CheckConnected();
+
+            string request = "<run_graphics_app>" +
+                new XElement("graphics_pid", graphicsPid) +
+                "<stop/>" +
+                new XElement("ScreensaverLoginUser", screensaverLoginUser) +
+                "</run_graphics_app>";
+
+            CheckResponse(await PerformRpcAsync(request));
+        }
+
+        /// <summary>
+        /// Check whether the specified graphics app is still running (only on macOS 10.13 or later).
+        /// This request requires authentication.
+        /// </summary>
+        /// <param name="graphicsPid">Process ID of the graphics app to check.</param>
+        /// <returns>True if the graphics app is still running, otherwise false.</returns>
+        public async Task<bool> TestGraphicsAppAsync(int graphicsPid)
+        {
+            CheckDisposed();
+            CheckConnected();
+
+            string request = "<run_graphics_app>" +
+                new XElement("graphics_pid", graphicsPid) +
+                "<test/>" +
+                "</run_graphics_app>";
+
+            XElement response = await PerformRpcAsync(request);
+
+            CheckResponse(response, "boinc_gui_rpc_reply");
+            
+            return response.ElementInt("graphics_pid") != 0;
+        }
+
         protected void CheckResponse(XElement response, string expectedElementName = null)
         {
             string elementName = response.Name.ToString();
