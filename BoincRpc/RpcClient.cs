@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -368,10 +368,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Set run mode for given duration (in seconds). This request requires authentication.
+        /// Set run mode for given duration. This request requires authentication.
         /// </summary>
         /// <param name="mode">Always/Auto/Never/Restore.</param>
-        /// <param name="duration">Seconds.</param>
+        /// <param name="duration"></param>
         /// <returns></returns>
         public async Task SetRunModeAsync(Mode mode, TimeSpan duration)
         {
@@ -391,10 +391,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Set GPU run mode for given duration (in seconds). This request requires authentication.
+        /// Set GPU run mode for given duration. This request requires authentication.
         /// </summary>
         /// <param name="mode">Always/Auto/Never/Restore.</param>
-        /// <param name="duration">Seconds.</param>
+        /// <param name="duration"></param>
         /// <returns></returns>
         public async Task SetGpuModeAsync(Mode mode, TimeSpan duration)
         {
@@ -414,10 +414,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Set the network mode for given duration (in seconds). This request requires authentication.
+        /// Set the network mode for given duration. This request requires authentication.
         /// </summary>
         /// <param name="mode">Always/Auto/Never/Restore.</param>
-        /// <param name="duration">Seconds.</param>
+        /// <param name="duration"></param>
         /// <returns></returns>
         public async Task SetNetworkModeAsync(Mode mode, TimeSpan duration)
         {
@@ -539,7 +539,8 @@ namespace BoincRpc
         /// Each message has a sequence number (1, 2, ...), a priority (1=informational, 2=error) and a timestamp.
         /// The RPC requests the messages with sequence numbers greater than seqno, in order of increasing sequence number.
         /// 
-        /// If translatable is true, messages from 6.11+ clients may include translatable parts. These parts are enclosed in _("..."). They should be translated according to the translation files in boinc/locale/*/BOINC-Client.po
+        /// If translatable is true, messages from 6.11+ clients may include translatable parts. These parts are enclosed in _("...").
+        /// They should be translated according to the translation files in boinc/locale/*/BOINC-Client.po.
         /// This request does not require authentication.
         /// </summary>
         /// <param name="sequenceNumber">seqno</param>
