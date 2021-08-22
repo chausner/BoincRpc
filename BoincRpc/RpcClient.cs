@@ -1197,11 +1197,7 @@ namespace BoincRpc
         {
             while (true)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                await Task.Delay(PollingInterval).ConfigureAwait(false);
-
-                cancellationToken.ThrowIfCancellationRequested();
+                await Task.Delay(PollingInterval, cancellationToken).ConfigureAwait(false);
 
                 XElement element = await PerformRpcAsync(request).ConfigureAwait(false);
 
