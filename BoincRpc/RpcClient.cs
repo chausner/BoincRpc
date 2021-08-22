@@ -1027,9 +1027,15 @@ namespace BoincRpc
 
             CheckConnected();
 
-            XElement request = new XElement("set_global_prefs_override", globalPreferencesOverride);
-
-            CheckResponse(await PerformRpcAsync(request));
+            if (globalPreferencesOverride != null)
+            {
+                XElement request = new XElement("set_global_prefs_override", globalPreferencesOverride);
+                CheckResponse(await PerformRpcAsync(request));
+            }
+            else
+            {
+                CheckResponse(await PerformRpcAsync("<set_global_prefs_override></set_global_prefs_override>"));
+            }
         }
 
         /// <summary>
