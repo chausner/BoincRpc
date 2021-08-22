@@ -11,15 +11,26 @@ namespace BoincRpc
 {
     // RPC command reference in https://github.com/BOINC/boinc/blob/master/client/gui_rpc_server_ops.cpp
 
+    /// <summary>
+    /// Client for the BOINC GUI RPC protocol (https://boinc.berkeley.edu/trac/wiki/GuiRpcProtocol).
+    /// </summary>
     public class RpcClient : IDisposable
     {
         private bool disposed = false;
 
         protected TcpClient tcpClient;
-        protected SemaphoreSlim semaphore = new SemaphoreSlim(1);        
+        protected SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
+        /// <summary>
+        /// Gets or sets the time to wait between status update requests during polling operations.
+        /// </summary>
         public TimeSpan PollingInterval { get; set; } = TimeSpan.FromSeconds(0.25);
 
+        /// <summary>
+        /// Connect to a BOINC client.
+        /// </summary>
+        /// <param name="host">Host name or IP address of the BOINC client.</param>
+        /// <param name="port">Port to connect to.</param>
         public Task ConnectAsync(string host, int port)
         {
             CheckDisposed();
@@ -38,6 +49,9 @@ namespace BoincRpc
             return tcpClient.ConnectAsync(host, port);
         }
 
+        /// <summary>
+        /// Close any active connection.
+        /// </summary>
         public void Close()
         {
             CheckDisposed();
@@ -49,6 +63,12 @@ namespace BoincRpc
             }
         }
 
+        /// <summary>
+        /// Authenticate with the BOINC client.
+        /// After successful authentication, operations that require authentication can be performed.
+        /// </summary>
+        /// <param name="password">GUI RPC password to use for authentication.</param>
+        /// <returns>True if the authentication was successful, otherwise false.</returns>
         public async Task<bool> AuthorizeAsync(string password)
         {
             CheckDisposed();
@@ -83,12 +103,12 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Exchange version info with the client.
-        /// This request does not require authentication.
+        /// Exchange version information with the client.
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
-        /// <param name="clientName">The program name of the client.</param>
-        /// <param name="localVersion">The version of the request's source.</param>
-        /// <returns>The client's version info is returned.</returns>
+        /// <param name="clientName">Name of the program connected to the BOINC client.</param>
+        /// <param name="localVersion">Version of the program connected to the BOINC client.</param>
+        /// <returns>Version of the BOINC client.</returns>
         public async Task<VersionInfo> ExchangeVersionsAsync(string clientName, VersionInfo localVersion)
         {
             CheckDisposed();
@@ -114,11 +134,11 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Get the client's 'static' state, i.e. its projects, apps, app_versions, workunits and results.
+        /// Get the client's "static" state, i.e. its projects, apps, app versions, workunits and results.
         /// This call is relatively slow and should only be done initially, and when needed later.
-        /// This request does not require authentication.
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
-        /// <returns>Client's entire state.</returns>
+        /// <returns>The client's entire state.</returns>
         public async Task<CoreClientState> GetStateAsync()
         {
             CheckDisposed();
@@ -132,13 +152,12 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Get a list of results.
+        /// Get a list of all results.
         /// Those that are in progress will have information such as CPU time and fraction done.
-        /// Each result includes a name; use CoreClientState (lookup_result) to find this result in the current static state; if it's not there, call GetStateAsync() again.
-        /// This request does not require authentication.
+        /// Each result includes a name; use the <see cref="CoreClientState"/> (via <see cref="GetStateAsync"/>) to find this result in the current static state; if it's not there, call <see cref="GetStateAsync"/> again.
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
-        /// <returns>List of results</returns>
-        /// <seealso cref="GetStateAsync()"></seealso>
+        /// <returns>A list of all results.</returns>
         public async Task<Result[]> GetResultsAsync()
         {
             CheckDisposed();
@@ -152,12 +171,11 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Show all current file transfers.
-        /// Each is linked by name to a project; use CoreClientState (lookup_project) to find this project in the current state; if it's not there, call GetStateAsync() again.
-        /// This request does not require authentication.
+        /// Get a list of all current file transfers.
+        /// Each is linked by name to a project; use the <see cref="CoreClientState"/> (via <see cref="GetStateAsync"/>) to find this project in the current state; if it's not there, call <see cref="GetStateAsync"/> again.
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
         /// <returns>A list of file transfers in progress.</returns>
-        /// <seealso cref="GetStateAsync()"></seealso>
         public async Task<FileTransfer[]> GetFileTransfersAsync()
         {
             CheckDisposed();
@@ -171,9 +189,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Show status of all attached projects. This request does not require authentication.
+        /// Get a list of all attached projects.
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
-        /// <returns>List of projects.</returns>
+        /// <returns>A list of all projects.</returns>
         public async Task<Project[]> GetProjectStatusAsync()
         {
             CheckDisposed();
@@ -187,10 +206,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Get a list of all the projects and account managers as found in the all_projects_list.xml file. 
-        /// This request does not require authentication.
+        /// Get a list of all the projects as found in the all_projects_list.xml file. 
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
-        /// <returns>List of projects and account managers</returns>
+        /// <returns>A list of projects.</returns>
         public async Task<ProjectListEntry[]> GetAllProjectsListAsync()
         {
             CheckDisposed();
@@ -203,6 +222,11 @@ namespace BoincRpc
             return response.Elements("project").Select(e => new ProjectListEntry(e)).ToArray();
         }
 
+        /// <summary>
+        /// Get a list of all the account managers as found in the all_projects_list.xml file. 
+        /// <para>This request does not require prior authentication.</para>
+        /// </summary>
+        /// <returns>A list of account managers.</returns>
         public async Task<AccountManagerListEntry[]> GetAllAccountManagersListAsync()
         {
             CheckDisposed();
@@ -216,9 +240,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Show disk usage by project. This request does not require authentication.
+        /// Get disk usage by project.
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
-        /// <returns>Disk usage.</returns>
+        /// <returns>Disk usage information.</returns>
         public async Task<DiskUsage> GetDiskUsageAsync()
         {
             CheckDisposed();
@@ -232,9 +257,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Get statistics for the projects the client is attached to. This request does not require authentication.
+        /// Get statistics for the projects the client is attached to.
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
-        /// <returns>List of project's statistics.</returns>
+        /// <returns>A list of project statistics.</returns>
         public async Task<ProjectStatistics[]> GetStatisticsAsync()
         {
             CheckDisposed();
@@ -248,10 +274,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Get CPU/GPU/network run modes and network connection status (version 6.12+)
-        /// This request does not require authentication.
+        /// Get CPU/GPU/network run modes and network connection status.
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
-        /// <returns>CoreClientStatus (cc_status)</returns>
+        /// <returns>The core client status.</returns>
         public async Task<CoreClientStatus> GetCoreClientStatusAsync()
         {
             CheckDisposed();
@@ -265,9 +291,9 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Retry deferred network communication. This request requires authentication.
+        /// Retry deferred network communication.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <returns></returns>
         public async Task NetworkAvailableAsync()
         {
             CheckDisposed();
@@ -277,21 +303,22 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Project operations:
-        /// - Reset a project.
-        /// - Detach from a project.
-        /// - Update a project.
-        /// - Suspend a project.
-        /// - Resume a project.
-        /// - Stop getting new tasks for a project.
-        /// - Receive new tasks for a project.
-        /// - Detach from a project after all it's tasks are finished.
-        /// - Don't detach from a project after all it's tasks are finished.
-        /// This request requires authentication.
+        /// Perform one of the following operations on a project:
+        /// <list type="bullet">
+        /// <item>Reset a project.</item>
+        /// <item>Detach from a project.</item>
+        /// <item>Update a project.</item>
+        /// <item>Suspend a project.</item>
+        /// <item>Resume a project.</item>
+        /// <item>Stop getting new tasks for a project.</item>
+        /// <item>Receive new tasks for a project.</item>
+        /// <item>Detach from a project after all it's tasks are finished.</item>
+        /// <item>Don't detach from a project after all it's tasks are finished.</item>
+        /// </list>
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="project"></param>
-        /// <param name="operation">Reset/Detach/Update/Suspend/Resume/NoMoreWork/AllowMoreWork/DetachWhenDone/DontDetachWhenDone</param>
-        /// <returns></returns>
+        /// <param name="project">The project to perform the operation on.</param>
+        /// <param name="operation">The operation to perform.</param>
         public async Task PerformProjectOperationAsync(Project project, ProjectOperation operation)
         {
             CheckDisposed();
@@ -331,13 +358,14 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Project operation. Attach the client to a project. This request requires authentication.
+        /// Attach the client to a project.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="projectUrl"></param>
-        /// <param name="authenticator"></param>
-        /// <param name="projectName"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="projectUrl">The master URL of the project.</param>
+        /// <param name="authenticator">The authenticator key.</param>
+        /// <param name="projectName">The name of the project.</param>
+        /// <param name="cancellationToken">A cancellation token which can be used to cancel the asynchronous operation before it completes.</param>
+        /// <returns>Status and result of the attachment operation.</returns>
         public async Task<ProjectAttachReply> ProjectAttachAsync(string projectUrl, string authenticator, string projectName, CancellationToken cancellationToken)
         {
             CheckDisposed();
@@ -362,18 +390,23 @@ namespace BoincRpc
 
             return new ProjectAttachReply(await PollRpcAsync("<project_attach_poll/>", cancellationToken));
         }
-        
+
+        /// <summary>
+        /// Set the run mode.
+        /// <para>This request requires prior authentication.</para>
+        /// </summary>
+        /// <param name="mode">The run mode to set.</param>
         public Task SetRunModeAsync(Mode mode)
         {
             return SetRunModeAsync(mode, TimeSpan.Zero);
         }
 
         /// <summary>
-        /// Set run mode for given duration. This request requires authentication.
+        /// Temporarily set the run mode for the given duration.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="mode">Always/Auto/Never/Restore.</param>
-        /// <param name="duration"></param>
-        /// <returns></returns>
+        /// <param name="mode">The run mode to set temporarily.</param>
+        /// <param name="duration">The time span after which the run mode should get reset.</param>
         public async Task SetRunModeAsync(Mode mode, TimeSpan duration)
         {
             CheckDisposed();
@@ -385,18 +418,23 @@ namespace BoincRpc
 
             CheckResponse(await PerformRpcAsync(request));
         }
-        
+
+        /// <summary>
+        /// Set the GPU run mode.
+        /// <para>This request requires prior authentication.</para>
+        /// </summary>
+        /// <param name="mode">The GPU run mode to set.</param>
         public Task SetGpuModeAsync(Mode mode)
         {
             return SetGpuModeAsync(mode, TimeSpan.Zero);
         }
 
         /// <summary>
-        /// Set GPU run mode for given duration. This request requires authentication.
+        /// Temporarily set the GPU run mode for the given duration.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="mode">Always/Auto/Never/Restore.</param>
-        /// <param name="duration"></param>
-        /// <returns></returns>
+        /// <param name="mode">The GPU run mode to set temporarily.</param>
+        /// <param name="duration">The time span after which the GPU run mode should get reset.</param>
         public async Task SetGpuModeAsync(Mode mode, TimeSpan duration)
         {
             CheckDisposed();
@@ -408,18 +446,23 @@ namespace BoincRpc
 
             CheckResponse(await PerformRpcAsync(request));
         }
-        
+
+        /// <summary>
+        /// Set the network mode.
+        /// <para>This request requires prior authentication.</para>
+        /// </summary>
+        /// <param name="mode">The network mode to set.</param>
         public Task SetNetworkModeAsync(Mode mode)
         {
             return SetNetworkModeAsync(mode, TimeSpan.Zero);
         }
 
         /// <summary>
-        /// Set the network mode for given duration. This request requires authentication.
+        /// Temporarily set the network mode for the given duration.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="mode">Always/Auto/Never/Restore.</param>
-        /// <param name="duration"></param>
-        /// <returns></returns>
+        /// <param name="mode">The network mode to set temporarily.</param>
+        /// <param name="duration">The time span after which the network mode should get reset.</param>
         public async Task SetNetworkModeAsync(Mode mode, TimeSpan duration)
         {
             CheckDisposed();
@@ -433,9 +476,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Show suspend reason and active tasks. This request does not require authentication.
+        /// Get a list of all active tasks and reasons why computations may be currently suspended.
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
-        /// <returns>List of results and suspend reason.</returns>
+        /// <returns>Tuploe of active tasks and the suspend reasons.</returns>
         public async Task<Tuple<Result[], SuspendReason>> GetScreensaverTasksAsync()
         {
             CheckDisposed();
@@ -453,9 +497,9 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Run benchmarks. This request requires authentication.
+        /// Run benchmarks.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <returns></returns>
         public async Task RunBenchmarksAsync()
         {
             CheckDisposed();
@@ -465,10 +509,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Set the proxy settings. This request requires authentication.
+        /// Set proxy settings.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="proxyInfo"></param>
-        /// <returns></returns>
+        /// <param name="proxyInfo">The proxy settings to apply.</param>
         public async Task SetProxySettingsAsync(ProxyInfo proxyInfo)
         {
             CheckDisposed();
@@ -498,9 +542,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Get proxy settings. This request requires authentication.
+        /// Get proxy settings.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The current proxy settings.</returns>
         public async Task<ProxyInfo> GetProxySettingsAsync()
         {
             CheckDisposed();
@@ -514,8 +559,8 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Show largest message seqno. Implemented in 6.10+ client version.
-        /// This request does not require authentication.
+        /// Get the sequence number of the latest message.
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
         /// <returns>The greatest message sequence number.</returns>
         public async Task<int> GetMessageCountAsync()
@@ -530,22 +575,25 @@ namespace BoincRpc
             return (int)response; // TODO: this could throw an exception
         }
 
+        /// <summary>
+        /// Get a list of all available messages.
+        /// Each message has a sequence number (1, 2, ...), a priority (informational, error) and a timestamp.
+        /// <para>This request does not require prior authentication.</para>
+        /// </summary>
+        /// <returns>A list of all messages.</returns>
         public Task<Message[]> GetMessagesAsync()
         {
             return GetMessagesAsync(0);
         }
 
         /// <summary>
-        /// Returns a list of messages to be displayed to the user.
-        /// Each message has a sequence number (1, 2, ...), a priority (1=informational, 2=error) and a timestamp.
-        /// The RPC requests the messages with sequence numbers greater than seqno, in order of increasing sequence number.
-        /// 
-        /// If translatable is true, messages from 6.11+ clients may include translatable parts. These parts are enclosed in _("...").
-        /// They should be translated according to the translation files in boinc/locale/*/BOINC-Client.po.
-        /// This request does not require authentication.
+        /// Get a list of new messages.
+        /// Each message has a sequence number (1, 2, ...), a priority (informational, error) and a timestamp.
+        /// The RPC requests all messages with a sequence numbers greater than <paramref name="sequenceNumber"/>, in order of increasing sequence number.
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
-        /// <param name="sequenceNumber">seqno</param>
-        /// <returns>List of messages with sequence numbers beyond the given seqno.</returns>
+        /// <param name="sequenceNumber">The sequence number of the last message already received.</param>
+        /// <returns>The list of messages with sequence numbers beyond the given sequence number.</returns>
         public async Task<Message[]> GetMessagesAsync(int sequenceNumber)
         {
             CheckDisposed();
@@ -566,24 +614,25 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Returns both private and non-private notices with sequence number greater than 0.
-        /// This request requires authentication.
+        /// Get a list of all available notices.
+        /// Notices are returned in order of increasing sequence number (which is the same as increasing arrival time).
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <returns>List of notices.</returns>
+        /// <returns>A list of all notices.</returns>
         public Task<Notice[]> GetNoticesAsync()
         {
             return GetNoticesAsync(0, false);
         }
 
         /// <summary>
-        /// Returns a list of notices with sequence number greater than seqno.
+        /// Get a list of new notices.
+        /// The RPC requests all notices with a sequence numbers greater than <paramref name="sequenceNumber"/>.
         /// Notices are returned in order of increasing sequence number (which is the same as increasing arrival time).
-        /// Unlike messages, notices can be removed. In this case, notices.complete is set to true, and notices.notices contains all notices. Otherwise notices.notices contains only new notices.
-        /// Implemented in 6.11+ client version.
+        /// <para>This request requires prior authentication if <paramref name="publicOnly"/> is false.</para>
         /// </summary>
-        /// <param name="sequenceNumber">seqno</param>
-        /// <param name="publicOnly">Returns only non-private notices. Doesn't require authentication.</param>
-        /// <returns>List of notices.</returns>
+        /// <param name="sequenceNumber">The sequence number of the last notice already received.</param>
+        /// <param name="publicOnly">If true, only non-private notices are returned. In this case, no prior authentication is required.</param>
+        /// <returns>The list of notices with sequence numbers beyond the given sequence number.</returns>
         public async Task<Notice[]> GetNoticesAsync(int sequenceNumber, bool publicOnly)
         {
             CheckDisposed();
@@ -604,11 +653,15 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// File transfer operations. Abort a pending file transfer or Retry a file transfer. This request requires authentication.
+        /// Perform one of the following operations on file transfers:
+        /// <list type="bullet">
+        /// <item>Abort a pending file transfer.</item>
+        /// <item>Retry a file transfer.</item>
+        /// </list>
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="fileTransfer"></param>
-        /// <param name="operation">Abort/Retry</param>
-        /// <returns></returns>
+        /// <param name="fileTransfer">The file transfer to perform the operation on.</param>
+        /// <param name="operation">The operation to perform.</param>
         public async Task PerformFileTransferOperationAsync(FileTransfer fileTransfer, FileTransferOperation operation)
         {
             CheckDisposed();
@@ -628,15 +681,15 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Task operations:
-        ///  - Abort a task,
-        ///  - Suspend a running task
-        ///  - Resume a suspended task.
-        /// This request requires authentication.
+        /// Perform one of the following operations on tasks:
+        /// <list type="bullet">
+        /// <item>Abort a task.</item>
+        /// <item>Resume a suspended task.</item>
+        /// </list>
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="result"></param>
-        /// <param name="operation">Abort/Suspend/Resume</param>
-        /// <returns></returns>
+        /// <param name="result">The task to perform the operation on.</param>
+        /// <param name="operation">The operation to perform.</param>
         public async Task PerformResultOperationAsync(Result result, ResultOperation operation)
         {
             CheckDisposed();
@@ -656,9 +709,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Get information about host hardware and usage. This request does not require authentication.
+        /// Get information about host hardware and usage.
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
-        /// <returns>Host info.</returns>
+        /// <returns>The host information.</returns>
         public async Task<HostInfo> GetHostInfoAsync()
         {
             CheckDisposed();
@@ -670,11 +724,11 @@ namespace BoincRpc
 
             return new HostInfo(response);
         }
-        
+
         /// <summary>
         /// Tell the client to get host parameters (RAM and disk sizes, #CPUs) again.
-        /// Do this if you're running the client in a container, and you change the parameters of the container.
-        /// This request requires authentication.
+        /// Do this if you're running the client in a container and you change the parameters of the container.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
         public async Task ResetHostInfoAsync()
         {
@@ -685,9 +739,9 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Tell client to exit. This request requires authentication.
+        /// Tell the client to exit.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <returns></returns>
         public async Task QuitAsync()
         {
             CheckDisposed();
@@ -697,15 +751,15 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Account manager operation. Do an Account Manager RPC to the given URL, passing the given name/password.
-        /// If the RPC is successful, save the account info on disk (it can be retrieved later using GetAccountManagerInfoAsync()).
-        /// This request requires authentication.
+        /// Attach the client to an account manager.
+        /// If the RPC is successful, the account info will be saved on disk and can be retrieved later using <see cref="GetAccountManagerInfoAsync"/>.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="url"></param>
-        /// <param name="name"></param>
-        /// <param name="password"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="url">The URL of the account manager.</param>
+        /// <param name="name">The user name to use for authenticating to the account manager.</param>
+        /// <param name="password">The password to use for authenticating to the account manager.</param>
+        /// <param name="cancellationToken">A cancellation token which can be used to cancel the asynchronous operation before it completes.</param>
+        /// <returns>Status and result of the attachment operation.</returns>
         public async Task<AccountManagerRpcReply> AccountManagerAttachAsync(string url, string name, string password, CancellationToken cancellationToken)
         {
             CheckDisposed();
@@ -730,22 +784,22 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Account manager operation. Remove account manager info from disk.
-        /// This request requires authentication.
+        /// Detach the client from an account manager. Removes the account manager info from disk.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="cancellationToken">A cancellation token which can be used to cancel the asynchronous operation before it completes.</param>
+        /// <returns>Status and result of the operation.</returns>
         public Task<AccountManagerRpcReply> AccountManagerDetachAsync(CancellationToken cancellationToken)
         {
             return AccountManagerAttachAsync(string.Empty, string.Empty, string.Empty, cancellationToken);
         }
 
         /// <summary>
-        /// Account manager operation. Do an RPC to the current account manager.
-        /// This request requires authentication.
+        /// Update (do an RPC to) the current account manager.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="cancellationToken">A cancellation token which can be used to cancel the asynchronous operation before it completes.</param>
+        /// <returns>Status and result of the operation.</returns>
         public async Task<AccountManagerRpcReply> AccountManagerUpdateAsync(CancellationToken cancellationToken)
         {
             CheckDisposed();
@@ -757,10 +811,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Account manager operation. Retrieve account manager information.
-        /// This request requires authentication.
+        /// Retrieve account manager information (URL/name of the current account manager (if any) and credential information).
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <returns>Return the URL/name of the current account manager (if any), and the user name and password.</returns>
+        /// <returns>The account manager information.</returns>
         public async Task<AccountManagerInfo> GetAccountManagerInfoAsync()
         {
             CheckDisposed();
@@ -774,10 +828,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Project operation. Get the contents of the project_init.xml file if present.
-        /// This request requires authentication.
+        /// Get the contents of the project_init.xml file for a project, if present.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The project init status.</returns>
         public async Task<ProjectInitStatus> GetProjectInitStatusAsync()
         {
             CheckDisposed();
@@ -791,12 +845,12 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Project operation. Fetch the project configuration file from the specified url.
-        /// This request requires authentication.
+        /// Fetch the project configuration file from the specified URL.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="url"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="url">The master URL of the project.</param>
+        /// <param name="cancellationToken">A cancellation token which can be used to cancel the asynchronous operation before it completes.</param>
+        /// <returns>The project configuration.</returns>
         public async Task<ProjectConfig> GetProjectConfigAsync(string url, CancellationToken cancellationToken)
         {
             CheckDisposed();
@@ -815,14 +869,14 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Account operation. Look for an account in a given project.
-        /// This request requires authentication.
+        /// Look for an account in a given project and return an authenticator key.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="url"></param>
-        /// <param name="emailAddress"></param>
-        /// <param name="password"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="url">The master URL of the project.</param>
+        /// <param name="emailAddress">The email address of the account.</param>
+        /// <param name="password">The password of the account.</param>
+        /// <param name="cancellationToken">A cancellation token which can be used to cancel the asynchronous operation before it completes.</param>
+        /// <returns>Result of the operation and the account information.</returns>
         public async Task<AccountInfo> LookupAccountAsync(string url, string emailAddress, string password, CancellationToken cancellationToken)
         {
             CheckDisposed();
@@ -850,14 +904,14 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Account operation. Look for an account in a given project using LDAP authentication.
-        /// This request requires authentication.
+        /// Look for an account in a given project using LDAP authentication and return an authenticator key.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="url"></param>
-        /// <param name="emailAddress"></param>
-        /// <param name="password"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="url">The master URL of the project.</param>
+        /// <param name="uid">The LDAP user UID of the account.</param>
+        /// <param name="password">The password of the account.</param>
+        /// <param name="cancellationToken">A cancellation token which can be used to cancel the asynchronous operation before it completes.</param>
+        /// <returns>Result of the operation and the account information.</returns>
         public async Task<AccountInfo> LookupAccountLdapAsync(string url, string uid, string password, CancellationToken cancellationToken)
         {
             CheckDisposed();
@@ -882,23 +936,34 @@ namespace BoincRpc
             return new AccountInfo(await PollRpcAsync("<lookup_account_poll/>", cancellationToken));
         }
 
+        /// <summary>
+        /// Create an account for a given project.
+        /// <para>This request requires prior authentication.</para>
+        /// </summary>
+        /// <param name="url">The master URL of the project.</param>
+        /// <param name="emailAddress">The email address to set for the account.</param>
+        /// <param name="password">The password to set for the account.</param>
+        /// <param name="username">The user name to set for the account.</param>
+        /// <param name="consentedToTerms">Whether the user has consented to the terms and conditions of the project.</param>
+        /// <param name="cancellationToken">A cancellation token which can be used to cancel the asynchronous operation before it completes.</param>
+        /// <returns>Result of the operation and the account information.</returns>
         public Task<AccountInfo> CreateAccountAsync(string url, string emailAddress, string password, string username, bool consentedToTerms, CancellationToken cancellationToken)
         {
             return CreateAccountAsync(url, emailAddress, password, username, null, consentedToTerms, cancellationToken);
         }
 
         /// <summary>
-        /// Account operation. Create an account for a given project.
-        /// This request requires authentication.
+        /// Create an account for a given project.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="url"></param>
-        /// <param name="emailAddress"></param>
-        /// <param name="password"></param>
-        /// <param name="username"></param>
-        /// <param name="teamName"></param>
-        /// <param name="consentedToTerms"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="url">The master URL of the project.</param>
+        /// <param name="emailAddress">The email address to set for the account.</param>
+        /// <param name="password">The password to set for the account.</param>
+        /// <param name="username">The user name to set for the account.</param>
+        /// <param name="teamName">The team name to set for the account.</param>
+        /// <param name="consentedToTerms">Whether the user has consented to the terms and conditions of the project.</param>
+        /// <param name="cancellationToken">A cancellation token which can be used to cancel the asynchronous operation before it completes.</param>
+        /// <returns>Result of the operation and the account information.</returns>
         public async Task<AccountInfo> CreateAccountAsync(string url, string emailAddress, string password, string username, string teamName, bool consentedToTerms, CancellationToken cancellationToken)
         {
             CheckDisposed();
@@ -930,9 +995,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Get newer version number, if any, and download url.
-        /// This request does not require authentication.
+        /// Get information about newer BOINC client versions, if any.
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
+        /// <returns>Information and download URL for a newer client version, if any.</returns>
         public async Task<NewerVersionInfo> GetNewerVersionAsync()
         {
             CheckDisposed();
@@ -947,10 +1013,9 @@ namespace BoincRpc
 
         /// <summary>
         /// Read the cc_config.xml file and set the configuration accordingly.
-        /// If no such file is present or it's contents are not formatted correctly the defaults are used.
-        /// This request requires authentication.
+        /// If no such file is present or its contents are not formatted correctly, the defaults are used.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <returns></returns>
         public async Task ReadCoreClientConfigAsync()
         {
             CheckDisposed();
@@ -960,10 +1025,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Global preferences operation. Get the contents of the global_prefs.xml file if present.
-        /// This request requires authentication.
+        /// Get the contents of the global_prefs.xml file, if present.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <returns>Contents of the global_prefs.xml</returns>
+        /// <returns>The contents of the global_prefs.xml.</returns>
         public async Task<GlobalPreferences> GetGlobalPreferencesFileAsync()
         {
             CheckDisposed();
@@ -977,10 +1042,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Global preferences operation: Get the currently used global_prefs.xml.
-        /// This request requires authentication.
+        /// Get the contents of the currently used global_prefs.xml.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The contents of the currently used global_prefs.xml.</returns>
         public async Task<GlobalPreferences> GetGlobalPreferencesWorkingAsync()
         {
             CheckDisposed();
@@ -994,10 +1059,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Global preferences operation: Get the contents of the global_prefs_override.xml file if present.
-        /// This request requires authentication.
+        /// Get the contents of the global_prefs_override.xml file, if present.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <returns>Contents of the global preferences override.xml</returns>
+        /// <returns>The contents of the global_prefs_override.xml.</returns>
         public async Task<XElement> GetGlobalPreferencesOverrideAsync()
         {
             CheckDisposed();
@@ -1013,11 +1078,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Global preferences operation: Write the given contents to the global preferences override file. If the argument is an empty string, delete the file.
-        /// This request requires authentication.
+        /// Write the given contents to the global_prefs_override.xml file or delete it.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="globalPreferencesOverride"></param>
-        /// <returns></returns>
+        /// <param name="globalPreferencesOverride">The contents for the global preferences override file, or null to delete the file.</param>
         public async Task SetGlobalPreferencesOverrideAsync(XElement globalPreferencesOverride)
         {
             CheckDisposed();
@@ -1039,10 +1103,9 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Global preferences operation: Tells the client to reread the global_prefs_override.xml file, and set the preferences accordingly.
-        /// This request requires authentication.
+        /// Tell the client to reread the global_prefs_override.xml file and set the preferences accordingly.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <returns></returns>
         public async Task ReadGlobalPreferencesOverrideAsync()
         {
             CheckDisposed();
@@ -1052,11 +1115,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Set the language field in the client_state.xml file to append it in any subsequent GET calls to the original URL and translate notices.
-        /// This request requires authentication.
+        /// Set the language field in the client_state.xml file to append it in any subsequent GET calls to the original URL and for translating notices.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="language"></param>
-        /// <returns></returns>
+        /// <param name="language">The ISO language code.</param>
         public async Task SetLanguageAsync(string language)
         {
             CheckDisposed();
@@ -1073,7 +1135,8 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Get the contents of the cc_config.xml file if present. This request requires authentication.
+        /// Get the contents of the cc_config.xml file, if present.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
         /// <returns>The content of the file.</returns>
         public async Task<XElement> GetCoreClientConfigAsync()
@@ -1089,10 +1152,10 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Write a new cc_config.xml file. This request requires authentication.
+        /// Write a new cc_config.xml file.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
-        /// <param name="coreClientConfig"></param>
-        /// <returns></returns>
+        /// <param name="coreClientConfig">The content to write.</param>
         public async Task SetCoreClientConfigAsync(XElement coreClientConfig)
         {
             CheckDisposed();
@@ -1109,9 +1172,9 @@ namespace BoincRpc
 
         /// <summary>
         /// Get a daily history of number of bytes uploaded and downloaded. Read from daily_xfer_history.xml.
-        /// Implemented in 6.13.7+ clients. This request does not require authentication.
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
-        /// <returns>Daily transfer statistics</returns>
+        /// <returns>The daily transfer statistics.</returns>
         public async Task<DailyTransferStatistics[]> GetDailyTransferHistoryAsync()
         {
             CheckDisposed();
@@ -1125,10 +1188,11 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Get a list of results that have been completed in the last hour and have been reported to their project. (These results are not returned by GetResultsAsync()).
-        /// This request does not require authentication.
+        /// Get a list of results that have been completed in the last hour and have been reported to their project.
+        /// (These results are not returned by <seealso cref="GetResultsAsync"/>).
+        /// <para>This request does not require prior authentication.</para>
         /// </summary>
-        /// <returns>List of results.</returns>
+        /// <returns>A list of completed and reported results.</returns>
         public async Task<OldResult[]> GetOldResultsAsync()
         {
             CheckDisposed();
@@ -1142,8 +1206,11 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Get the app config for a project. This request requires authentication.
+        /// Get the app config (app_config.xml) for a project.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
+        /// <param name="project">The project.</param>
+        /// <returns>The content of the app_config.xml.</returns>
         public async Task<XElement> GetAppConfigAsync(Project project)
         {
             CheckDisposed();
@@ -1164,8 +1231,11 @@ namespace BoincRpc
         }
 
         /// <summary>
-        /// Set the app config for a project. This request requires authentication.
+        /// Set the app config for a project.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
+        /// <param name="project">The project.</param>
+        /// <param name="appConfig">The content of the app_config.xml to set.</param>
         public async Task SetAppConfigAsync(Project project, XElement appConfig)
         {
             CheckDisposed();
@@ -1186,12 +1256,11 @@ namespace BoincRpc
 
         /// <summary>
         /// Start graphics app (only on macOS 10.15 or later).
-        /// This request requires authentication.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
         /// <param name="slot">Slot number of the task for which to start the graphics app, or -1 to start the default screensaver.</param>
         /// <param name="fullscreen">Whether to start the graphics app full screen or in windowed mode.</param>
-        /// <param name="screensaverLoginUser">User name of the user that invoked the screen saver (the currently logged-in user).</param>
-        /// <returns></returns>
+        /// <param name="screensaverLoginUser">User name of the user that invoked the screen saver (i.e. the currently logged-in user).</param>
         public async Task RunGraphicsAppAsync(int slot, bool fullscreen, string screensaverLoginUser)
         {
             CheckDisposed();
@@ -1212,11 +1281,10 @@ namespace BoincRpc
 
         /// <summary>
         /// Stop a running graphics app (only on macOS 10.13 or later).
-        /// This request requires authentication.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
         /// <param name="graphicsPid">Process ID of the graphics app to stop.</param>
-        /// <param name="screensaverLoginUser">User name of the user that invoked the screen saver (the currently logged-in user).</param>
-        /// <returns></returns>
+        /// <param name="screensaverLoginUser">User name of the user that invoked the screen saver (i.e. the currently logged-in user).</param>
         public async Task StopGraphicsAppAsync(int graphicsPid, string screensaverLoginUser)
         {
             CheckDisposed();
@@ -1237,7 +1305,7 @@ namespace BoincRpc
 
         /// <summary>
         /// Check whether the specified graphics app is still running (only on macOS 10.13 or later).
-        /// This request requires authentication.
+        /// <para>This request requires prior authentication.</para>
         /// </summary>
         /// <param name="graphicsPid">Process ID of the graphics app to check.</param>
         /// <returns>True if the graphics app is still running, otherwise false.</returns>
@@ -1368,6 +1436,9 @@ namespace BoincRpc
             return Encoding.ASCII.GetString(replyBuffer, 0, replyLength - 1);
         }
 
+        /// <summary>
+        /// Gets whether the RPC client is currently connected to a BOINC client.
+        /// </summary>
         public bool Connected
         {
             get
@@ -1400,6 +1471,9 @@ namespace BoincRpc
             disposed = true;
         }
 
+        /// <summary>
+        /// Close and free all resources of this object.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
@@ -1419,6 +1493,9 @@ namespace BoincRpc
         }
     }
 
+    /// <summary>
+    /// Exception thrown by <see cref="RpcClient"/> when a corrupted, invalid or unexpected response is received from the BOINC client.
+    /// </summary>
     public class InvalidRpcResponseException : Exception
     {
         public InvalidRpcResponseException()
@@ -1434,6 +1511,9 @@ namespace BoincRpc
         }
     }
 
+    /// <summary>
+    /// Exception thrown by <see cref="RpcClient"/> when the BOINC client response indicates a failed operation.
+    /// </summary>
     public class RpcFailureException : Exception
     {
         public RpcFailureException()
@@ -1449,6 +1529,9 @@ namespace BoincRpc
         }
     }
 
+    /// <summary>
+    /// Exception thrown by <see cref="RpcClient"/> when an operation was attempted in an unauthorized connection context that requires prior authorization.
+    /// </summary>
     public class RpcUnauthorizedException : Exception
     {
         public RpcUnauthorizedException()
