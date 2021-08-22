@@ -10,6 +10,7 @@
     <PackageTags>boinc rpc</PackageTags>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
     <Description>An asynchronous .NET Core implementation of the BOINC GUI RPC protocol.</Description>
+    <PackageReleaseNotes>First stable release.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

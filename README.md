@@ -3,6 +3,9 @@ An asynchronous .NET Core implementation of the [BOINC GUI RPC protocol](http://
 
 The implementation is up-to-date as of BOINC 7.18.1 and (almost) all RPC structures and commands are fully supported.
 
+[![NuGet](https://img.shields.io/nuget/v/BoincRpc.svg)](https://www.nuget.org/packages/BoincRpc/)
+[![license](https://img.shields.io/github/license/chausner/BoincRpc.svg)](https://github.com/chausner/BoincRpc/blob/master/LICENSE)
+
 Usage
 -----
 RPC client usage should be largely self-explanatory. For information on the RPC commands, see the [BOINC wiki](http://boinc.berkeley.edu/trac/wiki/GuiRpc).
@@ -27,4 +30,4 @@ using (RpcClient rpcClient = new RpcClient())
 
 License
 -------
-LGPL 3, see LICENSE
+LGPL 3, see [LICENSE](LICENSE)
