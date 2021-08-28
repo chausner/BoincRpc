@@ -1,16 +1,18 @@
 # BoincRpc
-An asynchronous .NET Core implementation of the [BOINC GUI RPC protocol](http://boinc.berkeley.edu/trac/wiki/GuiRpc).
+An asynchronous .NET implementation of the [BOINC GUI RPC protocol](http://boinc.berkeley.edu/trac/wiki/GuiRpc).
 
 The implementation is up-to-date as of BOINC 7.18.1 and (almost) all RPC structures and commands are fully supported.
+The library is compatible with [.NET Standard 2.0](https://docs.microsoft.com/en-us/dotnet/standard/net-standard).
 
 [![NuGet](https://img.shields.io/nuget/v/BoincRpc.svg)](https://www.nuget.org/packages/BoincRpc/)
 [![license](https://img.shields.io/github/license/chausner/BoincRpc.svg)](https://github.com/chausner/BoincRpc/blob/master/LICENSE)
 
 Usage
 -----
-RPC client usage should be largely self-explanatory. For information on the RPC commands, see the [BOINC wiki](http://boinc.berkeley.edu/trac/wiki/GuiRpc).
+Usage of the library should be largely self-explanatory.
+All functionality is provided via the `RpcClient` class.
 
-Connecting, authorizing and printing a list of all tasks:
+The following snippet shows how to connect and authenticate to a BOINC client and print a list of all current tasks: 
 ```csharp
 using (RpcClient rpcClient = new RpcClient())
 {
@@ -27,6 +29,8 @@ using (RpcClient rpcClient = new RpcClient())
     }
 }
 ```
+
+For information on the RPC commands, see the [BOINC wiki](http://boinc.berkeley.edu/trac/wiki/GuiRpc).
 
 License
 -------
