@@ -7,655 +7,506 @@ using System.Xml.Linq;
 
 namespace BoincRpc.Tests
 {
-    [TestClass]
-    public class Tests
+    public class TestsBase : IDisposable
     {
         public TestContext TestContext { get; set; }
+        protected RpcClient RpcClient { get; private set; } = new RpcClient();
 
-        private string RpcHost => Convert.ToString(TestContext.Properties["RpcHost"]);
-        private int RpcPort => Convert.ToInt32(TestContext.Properties["RpcPort"]);
-        private string RpcPassword => Convert.ToString(TestContext.Properties["RpcPassword"]);
+        protected string RpcHost => Convert.ToString(TestContext.Properties["RpcHost"]);
+        protected int RpcPort => Convert.ToInt32(TestContext.Properties["RpcPort"]);
+        protected string RpcPassword => Convert.ToString(TestContext.Properties["RpcPassword"]);
 
-        private async Task ConnectAndAuthorize(Func<RpcClient, Task> action)
+        bool disposed;
+
+        protected virtual void Dispose(bool disposing)
         {
-            using (RpcClient rpcClient = new RpcClient())
+            if (!disposed)
             {
-                await rpcClient.ConnectAsync(RpcHost, RpcPort);
-                await rpcClient.AuthorizeAsync(RpcPassword);
-                await action(rpcClient);
+                if (disposing)
+                    RpcClient?.Dispose();
+
+                disposed = true;
             }
         }
 
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+    }
+
+    [TestClass]
+    public class AuthorizationTests : TestsBase
+    {
         [TestMethod]
         public async Task AuthorizationFailsWithWrongPassword()
         {
-            using (RpcClient rpcClient = new RpcClient())
-            {
-                await rpcClient.ConnectAsync(RpcHost, RpcPort);
+            await RpcClient.ConnectAsync(RpcHost, RpcPort);
 
-                bool authorized = await rpcClient.AuthorizeAsync("wrongpassword");
+            bool authorized = await RpcClient.AuthorizeAsync("wrongpassword");
 
-                Assert.IsFalse(authorized);
-            }
+            Assert.IsFalse(authorized);
         }
 
         [TestMethod]
         public async Task AuthorizationSucceedsWithCorrectPassword()
         {
-            using (RpcClient rpcClient = new RpcClient())
+            await RpcClient.ConnectAsync(RpcHost, RpcPort);
+
+            bool authorized = await RpcClient.AuthorizeAsync(RpcPassword);
+
+            Assert.IsTrue(authorized);
+        }
+    }
+
+    [TestClass]
+    public class RpcTests : TestsBase
+    {
+        [TestInitialize]
+        public async Task ConnectAndAuthorize()
+        {
+            await RpcClient.ConnectAsync(RpcHost, RpcPort);
+            await RpcClient.AuthorizeAsync(RpcPassword);
+        }
+
+        [TestMethod]
+        public async Task AccountManagerAttach()
+        {
+            AccountManagerRpcReply reply = await RpcClient.AccountManagerAttachAsync("http://www.gridrepublic.org/", "invalid_username", "invalid_password", CancellationToken.None);
+
+            Assert.AreEqual(ErrorCode.BadEmailAddr, reply.ErrorCode);
+        }
+
+        [TestMethod]
+        public async Task AccountManagerDetach()
+        {
+            AccountManagerRpcReply reply = await RpcClient.AccountManagerDetachAsync(CancellationToken.None);
+
+            // ErrorCode.InvalidUrl will be returned if not attached to any account manager
+            Assert.AreEqual(ErrorCode.InvalidUrl, reply.ErrorCode);
+        }
+
+        [TestMethod]
+        public async Task AccountManagerUpdate()
+        {
+            // An RpcFailureException will be thrown if not attached to any account manager
+            RpcFailureException ex = await Assert.ThrowsExceptionAsync<RpcFailureException>(() => RpcClient.AccountManagerUpdateAsync(CancellationToken.None));
+
+            Assert.AreEqual("bad arg", ex.Message);
+        }
+
+        [TestMethod]
+        public void Close()
+        {
+            Assert.IsTrue(RpcClient.Connected);
+
+            RpcClient.Close();
+
+            Assert.IsFalse(RpcClient.Connected);
+        }
+
+        [TestMethod]
+        public async Task CreateAccount()
+        {
+            AccountInfo accountInfo = await RpcClient.CreateAccountAsync("http://non.existing.domain.xyz", "non@existing.mail", "password", "username", "team", false, CancellationToken.None);
+
+            Assert.AreEqual(ErrorCode.GetHostByName, accountInfo.ErrorCode);
+        }
+
+        [TestMethod]
+        public async Task ExchangeVersions()
+        {
+            VersionInfo versionInfo = await RpcClient.ExchangeVersionsAsync("BoincRpc", new VersionInfo(7, 6, 33));
+
+            Assert.IsTrue(versionInfo.Major >= 7);
+        }
+
+        [TestMethod]
+        public async Task PerformProjectOperation()
+        {
+            foreach (Project project in await RpcClient.GetProjectStatusAsync())
+                await RpcClient.PerformProjectOperationAsync(project, ProjectOperation.Update);
+        }
+
+        [TestMethod]
+        public async Task PerformFileTransferOperation()
+        {
+            foreach (FileTransfer fileTransfer in await RpcClient.GetFileTransfersAsync())
+                await RpcClient.PerformFileTransferOperationAsync(fileTransfer, FileTransferOperation.Retry);
+        }
+
+        [TestMethod]
+        public async Task PerformResultOperation()
+        {
+            foreach (Result result in await RpcClient.GetResultsAsync())
+                await RpcClient.PerformResultOperationAsync(result, ResultOperation.Suspend);
+        }
+
+        [TestMethod]
+        public async Task GetAccountManagerInfo()
+        {
+            AccountManagerInfo accountManagerInfo = await RpcClient.GetAccountManagerInfoAsync();
+        }
+
+        [TestMethod]
+        public async Task GetAllAccountManagersList()
+        {
+            AccountManagerListEntry[] accountManagers = await RpcClient.GetAllAccountManagersListAsync();
+
+            Assert.AreNotEqual(accountManagers.Length, 0);
+            Assert.AreNotEqual(string.Empty, accountManagers[0].Name);
+        }
+
+        [TestMethod]
+        public async Task GetAllProjectsList()
+        {
+            ProjectListEntry[] projects = await RpcClient.GetAllProjectsListAsync();
+
+            Assert.AreNotEqual(projects.Length, 0);
+            Assert.AreNotEqual(string.Empty, projects[0].Name);
+        }
+
+        [TestMethod]
+        public async Task GetCoreClientConfig()
+        {
+            XElement coreClientConfig = await RpcClient.GetCoreClientConfigAsync();
+        }
+
+        [TestMethod]
+        public async Task GetCoreClientStatus()
+        {
+            CoreClientStatus coreClientStatus = await RpcClient.GetCoreClientStatusAsync();
+        }
+
+        [TestMethod]
+        public async Task GetDailyTransferHistory()
+        {
+            DailyTransferStatistics[] dailyTransferHistory = await RpcClient.GetDailyTransferHistoryAsync();
+
+            Assert.AreNotEqual(dailyTransferHistory.Length, 0);
+            Assert.IsTrue(dailyTransferHistory[0].Day > new DateTime(2000, 1, 1));
+        }
+
+        [TestMethod]
+        public async Task GetDiskUsage()
+        {
+            DiskUsage diskUsage = await RpcClient.GetDiskUsageAsync();
+
+            Assert.IsTrue(diskUsage.Total > 0);
+        }
+
+        [TestMethod]
+        public async Task GetFileTransfers()
+        {
+            FileTransfer[] fileTransfers = await RpcClient.GetFileTransfersAsync();
+        }
+
+        [TestMethod]
+        public async Task GetGlobalPreferencesFile()
+        {
+            GlobalPreferences globalPreferences = await RpcClient.GetGlobalPreferencesFileAsync();
+
+            Assert.IsTrue(globalPreferences.ModifiedTime > new DateTime(2000, 1, 1));
+        }
+
+        [TestMethod]
+        public async Task GetGlobalPreferencesWorking()
+        {
+            GlobalPreferences globalPreferences = await RpcClient.GetGlobalPreferencesWorkingAsync();
+
+            Assert.IsTrue(globalPreferences.ModifiedTime > new DateTime(2000, 1, 1));
+        }
+
+        [TestMethod]
+        public async Task GetGlobalPreferencesOverride()
+        {
+            XElement globalPreferences = await RpcClient.GetGlobalPreferencesOverrideAsync();
+        }
+
+        [TestMethod]
+        public async Task GetHostInfo()
+        {
+            HostInfo hostInfo = await RpcClient.GetHostInfoAsync();
+
+            Assert.AreNotEqual(string.Empty, hostInfo.DomainName);
+        }
+
+        [TestMethod]
+        public async Task ResetHostInfo()
+        {
+            await RpcClient.ResetHostInfoAsync();
+        }
+
+        [TestMethod]
+        public async Task GetMessageCount()
+        {
+            int messageCount = await RpcClient.GetMessageCountAsync();
+
+            Assert.IsTrue(messageCount > 0);
+        }
+
+        [TestMethod]
+        public async Task GetMessages()
+        {
+            Message[] messages = await RpcClient.GetMessagesAsync();
+
+            Assert.AreNotEqual(messages.Length, 0);
+        }
+
+        [TestMethod]
+        public async Task GetNewerVersion()
+        {
+            NewerVersionInfo newerVersionInfo = await RpcClient.GetNewerVersionAsync();
+        }
+
+        [TestMethod]
+        public async Task GetNotices()
+        {
+            Notice[] notices = await RpcClient.GetNoticesAsync();
+        }
+
+        [TestMethod]
+        public async Task GetNoticesPublicOnly()
+        {
+            Notice[] notices = await RpcClient.GetNoticesAsync(0, true);
+        }
+
+        [TestMethod]
+        public async Task GetOldResults()
+        {
+            OldResult[] oldResults = await RpcClient.GetOldResultsAsync();
+        }
+
+        [TestMethod]
+        public async Task GetProjectConfig()
+        {
+            ProjectConfig projectConfig = await RpcClient.GetProjectConfigAsync("http://boinc.bakerlab.org/rosetta/", CancellationToken.None);
+
+            Assert.AreNotEqual(string.Empty, projectConfig.Name);
+        }
+
+        [TestMethod]
+        public async Task GetProjectInitStatus()
+        {
+            ProjectInitStatus projectInitStatus = await RpcClient.GetProjectInitStatusAsync();
+        }
+
+        [TestMethod]
+        public async Task GetProjectStatus()
+        {
+            Project[] projects = await RpcClient.GetProjectStatusAsync();
+
+            Assert.AreNotEqual(projects.Length, 0);
+
+            foreach (Project project in projects)
+                Assert.AreNotEqual(string.Empty, project.ProjectName);
+        }
+
+        [TestMethod]
+        public async Task GetProxySettings()
+        {
+            ProxyInfo proxyInfo = await RpcClient.GetProxySettingsAsync();
+        }
+
+        [TestMethod]
+        public async Task GetResults()
+        {
+            Result[] results = await RpcClient.GetResultsAsync();
+
+            Assert.AreNotEqual(results.Length, 0);
+
+            foreach (Result result in results)
+                Assert.AreNotEqual(string.Empty, result.Name);
+        }
+
+        [TestMethod]
+        public async Task GetScreensaverTasks()
+        {
+            Tuple<Result[], SuspendReason> screensaverTasks = await RpcClient.GetScreensaverTasksAsync();
+        }
+
+        [TestMethod]
+        public async Task GetState()
+        {
+            CoreClientState coreClientState = await RpcClient.GetStateAsync();
+
+            Assert.AreNotEqual(coreClientState.Apps.Count, 0);
+            Assert.AreNotEqual(coreClientState.AppVersions.Count, 0);
+            Assert.AreNotEqual(coreClientState.Platforms.Count, 0);
+            Assert.AreNotEqual(coreClientState.Projects.Count, 0);
+            Assert.AreNotEqual(coreClientState.Results.Count, 0);
+            Assert.AreNotEqual(coreClientState.Workunits.Count, 0);
+        }
+
+        [TestMethod]
+        public async Task GetStatistics()
+        {
+            ProjectStatistics[] statistics = await RpcClient.GetStatisticsAsync();
+
+            Assert.AreNotEqual(statistics.Length, 0);
+            Assert.AreNotEqual(string.Empty, statistics[0].MasterUrl);
+        }
+
+        [TestMethod]
+        public async Task LookupAccount()
+        {
+            AccountInfo accountInfo = await RpcClient.LookupAccountAsync("http://boinc.bakerlab.org/rosetta/", "non@existing.mail", "password", CancellationToken.None);
+
+            Assert.AreEqual(ErrorCode.DBNotFound, accountInfo.ErrorCode);
+        }
+
+        [TestMethod]
+        public async Task LookupAccountLdap()
+        {
+            AccountInfo accountInfo = await RpcClient.LookupAccountLdapAsync("http://boinc.bakerlab.org/rosetta/", "@nonexistinguid", "password", CancellationToken.None);
+
+            Assert.AreEqual(ErrorCode.DBNotFound, accountInfo.ErrorCode);
+        }
+
+        [TestMethod]
+        public async Task NetworkAvailable()
+        {
+            await RpcClient.NetworkAvailableAsync();
+        }
+
+        [TestMethod]
+        public async Task ProjectAttach()
+        {
+            ProjectAttachReply reply = await RpcClient.ProjectAttachAsync("http://boinc.bakerlab.org/rosetta/", "invalid_authenticator", "Rosetta@home", CancellationToken.None);
+
+            Assert.AreEqual(ErrorCode.Success, reply.ErrorCode);
+        }
+
+        [TestMethod]
+        public async Task ReadCoreClientConfig()
+        {
+            await RpcClient.ReadCoreClientConfigAsync();
+        }
+
+        [TestMethod]
+        public async Task ReadGlobalPreferencesOverride()
+        {
+            await RpcClient.ReadGlobalPreferencesOverrideAsync();
+        }
+
+        [TestMethod]
+        public async Task RunBenchmarksAsync()
+        {
+            await RpcClient.RunBenchmarksAsync();
+        }
+
+        [TestMethod]
+        public async Task SetCoreClientConfig()
+        {
+            XElement coreClientConfig = await RpcClient.GetCoreClientConfigAsync();
+
+            await RpcClient.SetCoreClientConfigAsync(coreClientConfig);
+        }
+
+        [TestMethod]
+        public async Task SetGlobalPreferencesOverride()
+        {
+            await RpcClient.SetGlobalPreferencesOverrideAsync(new XElement("global_preferences"));
+        }
+
+        [TestMethod]
+        public async Task SetGpuMode()
+        {
+            await RpcClient.SetGpuModeAsync(Mode.Always, TimeSpan.FromSeconds(5));
+        }
+
+        [TestMethod]
+        public async Task SetRunModeAsync()
+        {
+            await RpcClient.SetRunModeAsync(Mode.Always, TimeSpan.FromSeconds(5));
+        }
+
+        [TestMethod]
+        public async Task SetNetworkModeAsync()
+        {
+            await RpcClient.SetNetworkModeAsync(Mode.Always, TimeSpan.FromSeconds(5));
+        }
+
+        [TestMethod]
+        public async Task SetLanguage()
+        {
+            await RpcClient.SetLanguageAsync("de-DE");
+        }
+
+        [TestMethod]
+        public async Task SetProxySettings()
+        {
+            ProxyInfo proxyInfo = await RpcClient.GetProxySettingsAsync();
+            await RpcClient.SetProxySettingsAsync(proxyInfo);
+        }
+
+        [TestMethod]
+        public async Task GetAppConfig()
+        {
+            try
             {
-                await rpcClient.ConnectAsync(RpcHost, RpcPort);
+                Project[] projects = await RpcClient.GetProjectStatusAsync();
+                Project project = projects.First(p => p.MasterUrl == "http://boinc.bakerlab.org/rosetta/");
 
-                bool authorized = await rpcClient.AuthorizeAsync(RpcPassword);
-
-                Assert.IsTrue(authorized);
+                XElement appConfig = await RpcClient.GetAppConfigAsync(project);
+                Assert.AreEqual("app_config", appConfig.Name);
+            }
+            catch (RpcFailureException ex)
+            {
+                // An RpcFailureException will be thrown if no app_config.xml exists for the project
+                Assert.AreEqual("app_config.xml not found", ex.Message);
             }
         }
 
         [TestMethod]
-        public Task AccountManagerAttach()
+        public async Task SetAppConfig()
         {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                AccountManagerRpcReply reply = await rpcClient.AccountManagerAttachAsync("http://www.gridrepublic.org/", "invalid_username", "invalid_password", CancellationToken.None);
+            Project[] projects = await RpcClient.GetProjectStatusAsync();
+            Project project = projects.First(p => p.MasterUrl == "http://boinc.bakerlab.org/rosetta/");
 
-                Assert.AreEqual(ErrorCode.BadEmailAddr, reply.ErrorCode);
-            });
+            XElement appConfig = new XElement("app_config",
+                new XElement("dummy", 42));
+            await RpcClient.SetAppConfigAsync(project, appConfig);
         }
 
         [TestMethod]
-        public Task AccountManagerDetach()
+        public async Task RunGraphicsApp()
         {
-            return ConnectAndAuthorize(async rpcClient =>
+            try
             {
-                AccountManagerRpcReply reply = await rpcClient.AccountManagerDetachAsync(CancellationToken.None);
-
-                // ErrorCode.InvalidUrl will be returned if not attached to any account manager
-                Assert.AreEqual(ErrorCode.InvalidUrl, reply.ErrorCode);
-            });
+                await RpcClient.RunGraphicsAppAsync(-1, true, "");
+            }
+            catch (RpcFailureException ex)
+            {
+                Assert.AreEqual("run_graphics_app RPC is currently available only on Mac OS", ex.Message);
+            }
         }
 
         [TestMethod]
-        public Task AccountManagerUpdate()
+        public async Task StopGraphicsApp()
         {
-            return ConnectAndAuthorize(async rpcClient =>
+            try
             {
-                // An RpcFailureException will be thrown if not attached to any account manager
-                RpcFailureException ex = await Assert.ThrowsExceptionAsync<RpcFailureException>(() => rpcClient.AccountManagerUpdateAsync(CancellationToken.None));
-                
-                Assert.AreEqual("bad arg", ex.Message);
-            });
+                await RpcClient.StopGraphicsAppAsync(1234567, "");
+            }
+            catch (RpcFailureException ex)
+            {
+                Assert.AreEqual("run_graphics_app RPC is currently available only on Mac OS", ex.Message);
+            }
         }
 
         [TestMethod]
-        public Task Close()
+        public async Task TestGraphicsApp()
         {
-            return ConnectAndAuthorize(rpcClient =>
+            try
             {
-                Assert.IsTrue(rpcClient.Connected);
-
-                rpcClient.Close();
-
-                Assert.IsFalse(rpcClient.Connected);
-
-                return Task.CompletedTask;
-            });
-        }
-
-        [TestMethod]
-        public Task CreateAccount()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
+                await RpcClient.TestGraphicsAppAsync(1234567);
+            }
+            catch (RpcFailureException ex)
             {
-                AccountInfo accountInfo = await rpcClient.CreateAccountAsync("http://non.existing.domain.xyz", "non@existing.mail", "password", "username", "team", false, CancellationToken.None);
-
-                Assert.AreEqual(ErrorCode.GetHostByName, accountInfo.ErrorCode);
-            });
-        }
-
-        [TestMethod]
-        public Task ExchangeVersions()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                VersionInfo versionInfo = await rpcClient.ExchangeVersionsAsync("BoincRpc", new VersionInfo(7, 6, 33));
-
-                Assert.IsTrue(versionInfo.Major >= 7);
-            });
-        }
-
-        [TestMethod]
-        public Task PerformProjectOperation()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                foreach (Project project in await rpcClient.GetProjectStatusAsync())
-                    await rpcClient.PerformProjectOperationAsync(project, ProjectOperation.Update);
-            });
-        }
-
-        [TestMethod]
-        public Task PerformFileTransferOperation()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                foreach (FileTransfer fileTransfer in await rpcClient.GetFileTransfersAsync())
-                    await rpcClient.PerformFileTransferOperationAsync(fileTransfer, FileTransferOperation.Retry);
-            });
-        }
-
-        [TestMethod]
-        public Task PerformResultOperation()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                foreach (Result result in await rpcClient.GetResultsAsync())
-                    await rpcClient.PerformResultOperationAsync(result, ResultOperation.Suspend);
-            });
-        }
-
-        [TestMethod]
-        public Task GetAccountManagerInfo()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                AccountManagerInfo accountManagerInfo = await rpcClient.GetAccountManagerInfoAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task GetAllAccountManagersList()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                AccountManagerListEntry[] accountManagers = await rpcClient.GetAllAccountManagersListAsync();
-
-                Assert.AreNotEqual(accountManagers.Length, 0);
-                Assert.AreNotEqual(string.Empty, accountManagers[0].Name);
-            });
-        }
-
-        [TestMethod]
-        public Task GetAllProjectsList()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                ProjectListEntry[] projects = await rpcClient.GetAllProjectsListAsync();
-
-                Assert.AreNotEqual(projects.Length, 0);
-                Assert.AreNotEqual(string.Empty, projects[0].Name);
-            });
-        }
-
-        [TestMethod]
-        public Task GetCoreClientConfig()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                XElement coreClientConfig = await rpcClient.GetCoreClientConfigAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task GetCoreClientStatus()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                CoreClientStatus coreClientStatus = await rpcClient.GetCoreClientStatusAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task GetDailyTransferHistory()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                DailyTransferStatistics[] dailyTransferHistory = await rpcClient.GetDailyTransferHistoryAsync();
-
-                Assert.AreNotEqual(dailyTransferHistory.Length, 0);
-                Assert.IsTrue(dailyTransferHistory[0].Day > new DateTime(2000, 1, 1));
-            });
-        }
-
-        [TestMethod]
-        public Task GetDiskUsage()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                DiskUsage diskUsage = await rpcClient.GetDiskUsageAsync();
-
-                Assert.IsTrue(diskUsage.Total > 0);
-            });
-        }
-
-        [TestMethod]
-        public Task GetFileTransfers()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                FileTransfer[] fileTransfers = await rpcClient.GetFileTransfersAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task GetGlobalPreferencesFile()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                GlobalPreferences globalPreferences = await rpcClient.GetGlobalPreferencesFileAsync();
-
-                Assert.IsTrue(globalPreferences.ModifiedTime > new DateTime(2000, 1, 1));
-            });
-        }
-
-        [TestMethod]
-        public Task GetGlobalPreferencesWorking()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                GlobalPreferences globalPreferences = await rpcClient.GetGlobalPreferencesWorkingAsync();
-
-                Assert.IsTrue(globalPreferences.ModifiedTime > new DateTime(2000, 1, 1));
-            });
-        }
-
-        [TestMethod]
-        public Task GetGlobalPreferencesOverride()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                XElement globalPreferences = await rpcClient.GetGlobalPreferencesOverrideAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task GetHostInfo()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                HostInfo hostInfo = await rpcClient.GetHostInfoAsync();
-
-                Assert.AreNotEqual(string.Empty, hostInfo.DomainName);
-            });
-        }
-
-        [TestMethod]
-        public Task ResetHostInfo()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                await rpcClient.ResetHostInfoAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task GetMessageCount()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                int messageCount = await rpcClient.GetMessageCountAsync();
-
-                Assert.IsTrue(messageCount > 0);
-            });
-        }
-
-        [TestMethod]
-        public Task GetMessages()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                Message[] messages = await rpcClient.GetMessagesAsync();
-
-                Assert.AreNotEqual(messages.Length, 0);
-            });
-        }
-
-        [TestMethod]
-        public Task GetNewerVersion()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                NewerVersionInfo newerVersionInfo = await rpcClient.GetNewerVersionAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task GetNotices()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                Notice[] notices = await rpcClient.GetNoticesAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task GetNoticesPublicOnly()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                Notice[] notices = await rpcClient.GetNoticesAsync(0, true);
-            });
-        }
-
-        [TestMethod]
-        public Task GetOldResults()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                OldResult[] oldResults = await rpcClient.GetOldResultsAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task GetProjectConfig()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                ProjectConfig projectConfig = await rpcClient.GetProjectConfigAsync("http://boinc.bakerlab.org/rosetta/", CancellationToken.None);
-
-                Assert.AreNotEqual(string.Empty, projectConfig.Name);
-            });
-        }
-
-        [TestMethod]
-        public Task GetProjectInitStatus()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                ProjectInitStatus projectInitStatus = await rpcClient.GetProjectInitStatusAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task GetProjectStatus()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                Project[] projects = await rpcClient.GetProjectStatusAsync();
-
-                Assert.AreNotEqual(projects.Length, 0);
-
-                foreach (Project project in projects)
-                    Assert.AreNotEqual(string.Empty, project.ProjectName);
-            });
-        }
-
-        [TestMethod]
-        public Task GetProxySettings()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                ProxyInfo proxyInfo = await rpcClient.GetProxySettingsAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task GetResults()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                Result[] results = await rpcClient.GetResultsAsync();
-
-                Assert.AreNotEqual(results.Length, 0);
-
-                foreach (Result result in results)
-                    Assert.AreNotEqual(string.Empty, result.Name);
-            });
-        }
-
-        [TestMethod]
-        public Task GetScreensaverTasks()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                Tuple<Result[], SuspendReason> screensaverTasks = await rpcClient.GetScreensaverTasksAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task GetState()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                CoreClientState coreClientState = await rpcClient.GetStateAsync();
-
-                Assert.AreNotEqual(coreClientState.Apps.Count, 0);
-                Assert.AreNotEqual(coreClientState.AppVersions.Count, 0);
-                Assert.AreNotEqual(coreClientState.Platforms.Count, 0);
-                Assert.AreNotEqual(coreClientState.Projects.Count, 0);
-                Assert.AreNotEqual(coreClientState.Results.Count, 0);
-                Assert.AreNotEqual(coreClientState.Workunits.Count, 0);
-            });
-        }
-
-        [TestMethod]
-        public Task GetStatistics()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                ProjectStatistics[] statistics = await rpcClient.GetStatisticsAsync();
-
-                Assert.AreNotEqual(statistics.Length, 0);
-                Assert.AreNotEqual(string.Empty, statistics[0].MasterUrl);
-            });
-        }
-
-        [TestMethod]
-        public Task LookupAccount()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                AccountInfo accountInfo = await rpcClient.LookupAccountAsync("http://boinc.bakerlab.org/rosetta/", "non@existing.mail", "password", CancellationToken.None);
-
-                Assert.AreEqual(ErrorCode.DBNotFound, accountInfo.ErrorCode);
-            });
-        }
-
-        [TestMethod]
-        public Task LookupAccountLdap()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                AccountInfo accountInfo = await rpcClient.LookupAccountLdapAsync("http://boinc.bakerlab.org/rosetta/", "@nonexistinguid", "password", CancellationToken.None);
-
-                Assert.AreEqual(ErrorCode.DBNotFound, accountInfo.ErrorCode);
-            });
-        }
-
-        [TestMethod]
-        public Task NetworkAvailable()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                await rpcClient.NetworkAvailableAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task ProjectAttach()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                ProjectAttachReply reply = await rpcClient.ProjectAttachAsync("http://boinc.bakerlab.org/rosetta/", "invalid_authenticator", "Rosetta@home", CancellationToken.None);
-
-                Assert.AreEqual(ErrorCode.Success, reply.ErrorCode);
-            });
-        }
-
-        [TestMethod]
-        public Task ReadCoreClientConfig()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                await rpcClient.ReadCoreClientConfigAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task ReadGlobalPreferencesOverride()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                await rpcClient.ReadGlobalPreferencesOverrideAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task RunBenchmarksAsync()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                await rpcClient.RunBenchmarksAsync();
-            });
-        }
-
-        [TestMethod]
-        public Task SetCoreClientConfig()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                XElement coreClientConfig = await rpcClient.GetCoreClientConfigAsync();
-
-                await rpcClient.SetCoreClientConfigAsync(coreClientConfig);
-            });
-        }
-
-        [TestMethod]
-        public Task SetGlobalPreferencesOverride()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                await rpcClient.SetGlobalPreferencesOverrideAsync(new XElement("global_preferences"));
-            });
-        }
-
-        [TestMethod]
-        public Task SetGpuMode()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                await rpcClient.SetGpuModeAsync(Mode.Always, TimeSpan.FromSeconds(5));
-            });
-        }
-
-        [TestMethod]
-        public Task SetRunModeAsync()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                await rpcClient.SetRunModeAsync(Mode.Always, TimeSpan.FromSeconds(5));
-            });
-        }
-
-        [TestMethod]
-        public Task SetNetworkModeAsync()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                await rpcClient.SetNetworkModeAsync(Mode.Always, TimeSpan.FromSeconds(5));
-            });
-        }
-
-        [TestMethod]
-        public Task SetLanguage()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                await rpcClient.SetLanguageAsync("de-DE");
-            });
-        }
-
-        [TestMethod]
-        public Task SetProxySettings()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                ProxyInfo proxyInfo = await rpcClient.GetProxySettingsAsync();
-                await rpcClient.SetProxySettingsAsync(proxyInfo);
-            });
-        }
-
-        [TestMethod]
-        public Task GetAppConfig()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                try 
-                {
-                    Project[] projects = await rpcClient.GetProjectStatusAsync();
-                    Project project = projects.First(p => p.MasterUrl == "http://boinc.bakerlab.org/rosetta/");
-
-                    XElement appConfig = await rpcClient.GetAppConfigAsync(project);
-                    Assert.AreEqual("app_config", appConfig.Name);    
-                }
-                catch (RpcFailureException ex)
-                {
-                    // An RpcFailureException will be thrown if no app_config.xml exists for the project
-                    Assert.AreEqual("app_config.xml not found", ex.Message);
-                }  
-            });
-        }
-
-        [TestMethod]
-        public Task SetAppConfig()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                Project[] projects = await rpcClient.GetProjectStatusAsync();
-                Project project = projects.First(p => p.MasterUrl == "http://boinc.bakerlab.org/rosetta/");
-
-                XElement appConfig = new XElement("app_config",
-                    new XElement("dummy", 42));
-                await rpcClient.SetAppConfigAsync(project, appConfig);
-            });
-        }
-
-        [TestMethod]
-        public Task RunGraphicsApp()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                try
-                {
-                    await rpcClient.RunGraphicsAppAsync(-1, true, "");
-                }
-                catch (RpcFailureException ex)
-                {
-                    Assert.AreEqual("run_graphics_app RPC is currently available only on Mac OS", ex.Message);
-                }  
-            });
-        }
-
-        [TestMethod]
-        public Task StopGraphicsApp()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                try
-                {
-                    await rpcClient.StopGraphicsAppAsync(1234567, "");
-                }
-                catch (RpcFailureException ex)
-                {
-                    Assert.AreEqual("run_graphics_app RPC is currently available only on Mac OS", ex.Message);
-                }  
-            });
-        }
-
-        [TestMethod]
-        public Task TestGraphicsApp()
-        {
-            return ConnectAndAuthorize(async rpcClient =>
-            {
-                try
-                {
-                    await rpcClient.TestGraphicsAppAsync(1234567);
-                }
-                catch (RpcFailureException ex)
-                {
-                    Assert.AreEqual("run_graphics_app RPC is currently available only on Mac OS", ex.Message);
-                }  
-            });
+                Assert.AreEqual("run_graphics_app RPC is currently available only on Mac OS", ex.Message);
+            }
         }
     }
 }
