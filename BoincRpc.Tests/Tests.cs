@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
 using System.Threading;
@@ -7,7 +7,7 @@ using System.Xml.Linq;
 
 namespace BoincRpc.Tests
 {
-	[TestClass]
+    [TestClass]
     public class Tests
     {
         public TestContext TestContext { get; set; }
