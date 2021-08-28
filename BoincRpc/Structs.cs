@@ -1163,7 +1163,6 @@ namespace BoincRpc
     {
         public TimeSpan TimeZone { get; }
         public string DomainName { get; }
-        public string SerialNumber { get; }
         public string IPAddress { get; }
         public string HostCPID { get; }
         public int NumberOfCpus { get; }
