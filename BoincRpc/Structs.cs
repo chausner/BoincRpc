@@ -36,7 +36,7 @@ namespace BoincRpc
         public IReadOnlyList<string> Messages { get; }
 
         internal AccountManagerRpcReply(XElement element)
-        {            
+        {
             ErrorCode = (ErrorCode)element.ElementInt("error_num");
             Messages = element.Elements("message").Select(e => (string)e).ToArray();
         }
@@ -339,49 +339,49 @@ namespace BoincRpc
 
     public class Project
     {
-        public string MasterUrl { get; private set; }
-        public string ProjectName { get; private set; }
-        public string UserName { get; private set; }
-        public string TeamName { get; private set; }
-        public int HostID { get; private set; }
-        public IReadOnlyList<GuiUrl> GuiUrls { get; private set; }
-        public double ResourceShare { get; private set; }
-        public double UserTotalCredit { get; private set; }
-        public double UserAverageCredit { get; private set; }
-        public double HostTotalCredit { get; private set; }
-        public double HostAverageCredit { get; private set; }
-        public double DiskUsage { get; private set; }
-        public int RpcFailures { get; private set; }
-        public int MasterFetchFailures { get; private set; }
-        public DateTimeOffset MinRpcTime { get; private set; }
-        public TimeSpan DownloadBackoff { get; private set; }
-        public TimeSpan UploadBackoff { get; private set; }
-        public double ShortTermDebt { get; private set; }
-        public double LongTermDebt { get; private set; }
-        public DateTimeOffset CpuBackoffTime { get; private set; }
-        public TimeSpan CpuBackoffInterval { get; private set; }
-        public double CudaDebt { get; private set; }
-        public double CudaShortTermDebt { get; private set; }
-        public DateTimeOffset CudaBackoffTime { get; private set; }
-        public TimeSpan CudaBackoffInterval { get; private set; }
-        public double AtiDebt { get; private set; }
-        public double AtiShortTermDebt { get; private set; }
-        public DateTimeOffset AtiBackoffTime { get; private set; }
-        public TimeSpan AtiBackoffInterval { get; private set; }
-        public double DurationCorrectionFactor { get; private set; }
-        public bool MasterUrlFetchPending { get; private set; }
-        public RpcReason SchedulerRpcPending { get; private set; }
-        public bool SchedulerRpcInProgress { get; private set; }
-        public bool NonCpuIntensive { get; private set; }
-        public bool Suspended { get; private set; }
-        public bool DontRequestMoreWork { get; private set; }
-        public bool AttachedViaAccountManager { get; private set; }
-        public bool DetachWhenDone { get; private set; }
-        public bool Ended { get; private set; }
-        public DateTimeOffset ProjectFilesDownloadedTime { get; private set; }
-        public DateTimeOffset LastRpcTime { get; private set; }
+        public string MasterUrl { get; }
+        public string ProjectName { get; }
+        public string UserName { get; }
+        public string TeamName { get; }
+        public int HostID { get; }
+        public IReadOnlyList<GuiUrl> GuiUrls { get; }
+        public double ResourceShare { get; }
+        public double UserTotalCredit { get; }
+        public double UserAverageCredit { get; }
+        public double HostTotalCredit { get; }
+        public double HostAverageCredit { get; }
+        public double DiskUsage { get; }
+        public int RpcFailures { get; }
+        public int MasterFetchFailures { get; }
+        public DateTimeOffset MinRpcTime { get; }
+        public TimeSpan DownloadBackoff { get; }
+        public TimeSpan UploadBackoff { get; }
+        public double ShortTermDebt { get; }
+        public double LongTermDebt { get; }
+        public DateTimeOffset CpuBackoffTime { get; }
+        public TimeSpan CpuBackoffInterval { get; }
+        public double CudaDebt { get; }
+        public double CudaShortTermDebt { get; }
+        public DateTimeOffset CudaBackoffTime { get; }
+        public TimeSpan CudaBackoffInterval { get; }
+        public double AtiDebt { get; }
+        public double AtiShortTermDebt { get; }
+        public DateTimeOffset AtiBackoffTime { get; }
+        public TimeSpan AtiBackoffInterval { get; }
+        public double DurationCorrectionFactor { get; }
+        public bool MasterUrlFetchPending { get; }
+        public RpcReason SchedulerRpcPending { get; }
+        public bool SchedulerRpcInProgress { get; }
+        public bool NonCpuIntensive { get; }
+        public bool Suspended { get; }
+        public bool DontRequestMoreWork { get; }
+        public bool AttachedViaAccountManager { get; }
+        public bool DetachWhenDone { get; }
+        public bool Ended { get; }
+        public DateTimeOffset ProjectFilesDownloadedTime { get; }
+        public DateTimeOffset LastRpcTime { get; }
 
-        //public List<DailyStatistics> Statistics { get; private set; }
+        //public List<DailyStatistics> Statistics { get; }
 
         internal Project(XElement element)
         {
@@ -538,49 +538,49 @@ namespace BoincRpc
 
     public class Result
     {
-        public string Name { get; private set; }
-        public string WorkunitName { get; private set; }
-        public string ProjectUrl { get; private set; }
-        public int VersionNumber { get; private set; }
-        public string PlanClass { get; private set; }
-        public DateTimeOffset ReportDeadline { get; private set; }
-        public DateTimeOffset ReceivedTime { get; private set; }
-        public bool ReadyToReport { get; private set; }
-        public bool GotServerAck { get; private set; }
-        public TimeSpan FinalCpuTime { get; private set; }
-        public TimeSpan FinalElapsedTime { get; private set; }
-        public ResultState State { get; private set; }
-        public SchedulerState SchedulerState { get; private set; }
-        public int ExitStatus { get; private set; }
-        public int Signal { get; private set; }
-        public string StderrOut { get; private set; }
-        public bool Suspended { get; private set; }
-        public bool ProjectSuspended { get; private set; }
-        public bool ReportImmediately { get; private set; }
-        public bool CoprocessorMissing { get; private set; }
-        public bool SchedulerWait { get; private set; }
-        public string SchedulerWaitReason { get; private set; }
-        public bool NetworkWait { get; private set; }
-        public bool ActiveTask { get; private set; }
-        public TaskState ActiveTaskState { get; private set; }
-        public int AppVersionNumber { get; private set; }
-        public int Slot { get; private set; }
-        public int Pid { get; private set; }
-        public TimeSpan CheckpointCpuTime { get; private set; }
-        public TimeSpan CurrentCpuTime { get; private set; }
-        public double FractionDone { get; private set; }
-        public TimeSpan ElapsedTime { get; private set; }
-        public double SwapSize { get; private set; }
-        public double WorkingSetSizeSmoothed { get; private set; }
-        public TimeSpan EstimatedCpuTimeRemaining { get; private set; }
-        public bool SupportsGraphics { get; private set; }
-        public int GraphicsModeAcked { get; private set; }
-        public bool TooLarge { get; private set; }
-        public bool NeedsSharedMemory { get; private set; }
-        public bool EdfScheduled { get; private set; } // no longer there ?
-        public string GraphicsExecPath { get; private set; }
-        public string SlotPath { get; private set; }
-        public string Resources { get; private set; }
+        public string Name { get; }
+        public string WorkunitName { get; }
+        public string ProjectUrl { get; }
+        public int VersionNumber { get; }
+        public string PlanClass { get; }
+        public DateTimeOffset ReportDeadline { get; }
+        public DateTimeOffset ReceivedTime { get; }
+        public bool ReadyToReport { get; }
+        public bool GotServerAck { get; }
+        public TimeSpan FinalCpuTime { get; }
+        public TimeSpan FinalElapsedTime { get; }
+        public ResultState State { get; }
+        public SchedulerState SchedulerState { get; }
+        public int ExitStatus { get; }
+        public int Signal { get; }
+        public string StderrOut { get; }
+        public bool Suspended { get; }
+        public bool ProjectSuspended { get; }
+        public bool ReportImmediately { get; }
+        public bool CoprocessorMissing { get; }
+        public bool SchedulerWait { get; }
+        public string SchedulerWaitReason { get; }
+        public bool NetworkWait { get; }
+        public bool ActiveTask { get; }
+        public TaskState ActiveTaskState { get; }
+        public int AppVersionNumber { get; }
+        public int Slot { get; }
+        public int Pid { get; }
+        public TimeSpan CheckpointCpuTime { get; }
+        public TimeSpan CurrentCpuTime { get; }
+        public double FractionDone { get; }
+        public TimeSpan ElapsedTime { get; }
+        public double SwapSize { get; }
+        public double WorkingSetSizeSmoothed { get; }
+        public TimeSpan EstimatedCpuTimeRemaining { get; }
+        public bool SupportsGraphics { get; }
+        public int GraphicsModeAcked { get; }
+        public bool TooLarge { get; }
+        public bool NeedsSharedMemory { get; }
+        public bool EdfScheduled { get; } // no longer there ?
+        public string GraphicsExecPath { get; }
+        public string SlotPath { get; }
+        public string Resources { get; }
 
         internal Result(XElement element)
         {
@@ -643,27 +643,27 @@ namespace BoincRpc
 
     public class FileTransfer
     {
-        public string Name { get; private set; }
-        public string ProjectUrl { get; private set; }
-        public string ProjectName { get; private set; }
-        public double NumberOfBytes { get; private set; }
-        public bool Uploaded { get; private set; }
-        public bool Sticky { get; private set; }
-        public bool PersistentTransferActive { get; private set; }
-        public bool TransferActive { get; private set; }
-        public int NumberOfRetries { get; private set; }
-        public DateTimeOffset FirstRequestTime { get; private set; }
-        public DateTimeOffset NextRequestTime { get; private set; }
-        public ErrorCode Status { get; private set; }
-        public TimeSpan TimeSoFar { get; private set; }
-        public double LastBytesTransferred { get; private set; }
-        public bool IsUpload { get; private set; }
-        public double BytesTransferred { get; private set; }
-        public double FileOffset { get; private set; }
-        public double TransferSpeed { get; private set; }
-        public string Url { get; private set; }
-        public string Hostname { get; private set; }
-        public TimeSpan ProjectBackoff { get; private set; }
+        public string Name { get; }
+        public string ProjectUrl { get; }
+        public string ProjectName { get; }
+        public double NumberOfBytes { get; }
+        public bool Uploaded { get; }
+        public bool Sticky { get; }
+        public bool PersistentTransferActive { get; }
+        public bool TransferActive { get; }
+        public int NumberOfRetries { get; }
+        public DateTimeOffset FirstRequestTime { get; }
+        public DateTimeOffset NextRequestTime { get; }
+        public ErrorCode Status { get; }
+        public TimeSpan TimeSoFar { get; }
+        public double LastBytesTransferred { get; }
+        public bool IsUpload { get; }
+        public double BytesTransferred { get; }
+        public double FileOffset { get; }
+        public double TransferSpeed { get; }
+        public string Url { get; }
+        public string Hostname { get; }
+        public TimeSpan ProjectBackoff { get; }
 
         internal FileTransfer(XElement element)
         {
@@ -675,7 +675,7 @@ namespace BoincRpc
             Uploaded = element.ContainsElement("uploaded");
             Sticky = element.ContainsElement("sticky");
             PersistentTransferActive = element.ContainsElement("persistent_file_xfer");
-            TransferActive = element.ContainsElement("file_xfer");           
+            TransferActive = element.ContainsElement("file_xfer");
             Status = (ErrorCode)element.ElementInt("status");
             Hostname = element.ElementString("hostname");
             ProjectBackoff = element.ElementTimeSpan("project_backoff");
@@ -809,7 +809,7 @@ namespace BoincRpc
 
     // in client\result.cpp
     public class OldResult
-    { 
+    {
         public string ProjectUrl { get; }
         public string ResultName { get; }
         public string AppName { get; }
@@ -875,7 +875,7 @@ namespace BoincRpc
         {
             return StartHour.GetHashCode() ^ EndHour.GetHashCode();
         }
-        
+
         public static bool operator ==(StartEndTime obj1, object obj2)
         {
             return obj1.Equals(obj2);
@@ -917,7 +917,7 @@ namespace BoincRpc
         public double SuspendIfNoRecentInput { get; }
         public double SuspendCpuUsage { get; }
         public TimesPreferences CpuTimes { get; }
-        public TimesPreferences NetworkTimes { get; } 
+        public TimesPreferences NetworkTimes { get; }
         public bool LeaveAppsInMemory { get; }
         public bool ConfirmBeforeConnecting { get; }
         public bool HangupIfDialed { get; }
@@ -953,7 +953,7 @@ namespace BoincRpc
             RunIfUserActive = element.ContainsElement("run_if_user_active");
             RunGpuIfUserActive = element.ContainsElement("run_gpu_if_user_active");
             SuspendIfNoRecentInput = element.ElementDouble("suspend_if_no_recent_input");
-            SuspendCpuUsage = element.ElementDouble("suspend_cpu_usage");            
+            SuspendCpuUsage = element.ElementDouble("suspend_cpu_usage");
             LeaveAppsInMemory = element.ContainsElement("leave_apps_in_memory");
             ConfirmBeforeConnecting = element.ContainsElement("confirm_before_connecting");
             HangupIfDialed = element.ContainsElement("hangup_if_dialed");
@@ -981,7 +981,7 @@ namespace BoincRpc
 
             StartEndTime cpuStartEndTime = new StartEndTime(element.ElementDouble("start_hour"), element.ElementDouble("end_hour"));
             StartEndTime networkStartEndTime = new StartEndTime(element.ElementDouble("net_start_hour"), element.ElementDouble("net_end_hour"));
-            
+
             Dictionary<DayOfWeek, StartEndTime> weeklyCpuPreferences = new Dictionary<DayOfWeek, StartEndTime>();
             Dictionary<DayOfWeek, StartEndTime> weeklyNetworkPreferences = new Dictionary<DayOfWeek, StartEndTime>();
 
@@ -1093,7 +1093,7 @@ namespace BoincRpc
         public TimeSpan TotalDuration { get; }
         public TimeSpan TotalActiveDuration { get; }
         public TimeSpan TotalGpuActiveDuration { get; }
-   
+
         internal TimeStatistics(XElement element)
         {
             Now = element.ElementDateTimeOffset("now");
