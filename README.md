@@ -1,5 +1,5 @@
 # BoincRpc
-An asynchronous .NET implementation of the [BOINC GUI RPC protocol](http://boinc.berkeley.edu/trac/wiki/GuiRpc).
+An asynchronous .NET implementation of the [BOINC GUI RPC protocol](https://github.com/BOINC/boinc/wiki/GuiRpcProtocol).
 
 The implementation is up-to-date as of BOINC 7.18.1 and (almost) all RPC structures and commands are fully supported.
 The library is compatible with [.NET Standard 2.0](https://docs.microsoft.com/en-us/dotnet/standard/net-standard).
@@ -30,7 +30,7 @@ using (RpcClient rpcClient = new RpcClient())
 }
 ```
 
-For information on the RPC commands, see the [BOINC wiki](http://boinc.berkeley.edu/trac/wiki/GuiRpc).
+For information on the RPC commands, see the [BOINC wiki](https://github.com/BOINC/boinc/wiki/GuiRpcProtocol).
 
 License
 -------
