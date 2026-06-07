@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="BoincRpc.Tests/BoincRpc.Tests.csproj" />
+  <Project Path="BoincRpc/BoincRpc.csproj" />
+</Solution>
